@@ -36,7 +36,7 @@ COPY --from=builder /app/bin/production ./bin/production
 COPY --from=builder /app/.env ./.env
 
 # Expose the port the application runs on
-EXPOSE 8600
+EXPOSE 8100
 
 # Run the application
 ENTRYPOINT ["./bin/production"]
