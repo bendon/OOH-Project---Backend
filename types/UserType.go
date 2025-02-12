@@ -33,7 +33,6 @@ type Credentials struct {
 }
 type SwitchAccountPayload struct {
 	AccountId uuid.UUID `json:"accountId"`
-	BranchId  uuid.UUID `json:"branchId"`
 }
 
 type CreateRoleRequest struct {

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -116,11 +117,14 @@ func PostSwtichAccounts(c *fiber.Ctx) error {
 	// create new token account
 	expirationTime := jwt.NewNumericDate(time.Now().Add(6 * time.Hour))
 
+	tokenCodesl := utils.HashPassword([]byte("token"))
+
 	claims := &middleware.AccountClaims{
 		OwnerID:     profile.ID,
 		Username:    profile.Email,
 		Accessing:   account.ID,
 		Accessor:    account.OrganizationId,
+		CodeSl:      tokenCodesl,
 		Permissions: permissionNames,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: expirationTime,
@@ -139,9 +143,64 @@ func PostSwtichAccounts(c *fiber.Ctx) error {
 		User:         *profile,
 		Account:      account,
 		AccessToken:  tokenString,
-		RefreshToken: tokenString,
+		RefreshToken: *GetRefreshToken(*claims),
 		Permissions:  &permissionNames,
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+func GetRefreshToken(claims middleware.AccountClaims) *string {
+	expirationTime := jwt.NewNumericDate(time.Now().Add(8 * time.Hour))
+	refreshTokenCodesl := utils.HashPassword([]byte("refreshToken"))
+
+	claims.CodeSl = refreshTokenCodesl
+	claims.RegisteredClaims.ExpiresAt = expirationTime
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(middleware.JwtKey)
+
+	if err != nil {
+		fmt.Printf("Error signing token: %v\n", err)
+		return nil
+	}
+
+	return &tokenString
+}
+
+func ChangePassword(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	request := new(types.ChangePasswordRequest)
+	if err := c.BodyParser(request); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "Invalid request")
+	}
+	userRepo := repository.NewUserRepository()
+	profile, err := userRepo.GetUserById(user.OwnerID)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusNotFound, "No accounts found for user")
+	}
+	// if user not found
+	if profile == nil {
+		return utils.WriteError(c, fiber.StatusNotFound, "User not found")
+	}
+
+	// check if old password is correct
+	compared := utils.ComparePasswords([]byte(request.OldPassword), profile.Password)
+	if !compared {
+		return utils.WriteError(c, fiber.StatusUnauthorized, "unauthorized. invalid credentials")
+	}
+
+	profile.Password = utils.HashPassword([]byte(request.NewPassword))
+	updatedUser, err := userRepo.UpdateUser(profile)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "Error updating user")
+	}
+	if updatedUser == nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "Error updating user")
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Password updated successfully",
+		"user":    updatedUser,
+	})
+
 }

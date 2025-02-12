@@ -95,7 +95,7 @@ func CheckAccountAuthentication(c *fiber.Ctx) error {
 	userAccRepo := repository.NewUserAccountRepository()
 	//check active account
 	acc, _accErr := userAccRepo.GetUserAccountByUserIdAndId(claims.OwnerID, claims.Accessing)
-	if _accErr != nil {
+	if _accErr != nil || acc == nil {
 		return utils.WriteError(c, fiber.StatusForbidden, "Access denied")
 	}
 
@@ -109,6 +109,12 @@ func CheckAccountAuthentication(c *fiber.Ctx) error {
 
 	if errPerm != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "Unable to fetch permissions")
+	}
+
+	// check if the token is not a refresh token
+	compared := utils.ComparePasswords([]byte("token"), claims.CodeSl)
+	if !compared {
+		return utils.WriteError(c, fiber.StatusForbidden, "Access denied")
 	}
 
 	// Extract permission names into a slice of strings

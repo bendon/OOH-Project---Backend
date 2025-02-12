@@ -1,11 +1,13 @@
 package repository
 
 import (
-	"bbscout/config/database"
-	"bbscout/models"
+	"errors"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+
+	"bbscout/config/database"
+	"bbscout/models"
 )
 
 type UserAccountRepository interface {
@@ -73,6 +75,10 @@ func (r *userAccountRepositoryImpl) GetUserAccountByUserIdAndId(userId uuid.UUID
 	var userAccount models.UserAccountModel
 	err := r.db.Preload("Organization").Where("user_id = ?", userId).Where("id = ?", id).Where("active=?", true).Where("is_locked=?", false).First(&userAccount).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+
+		}
 		return nil, err
 	}
 	return &userAccount, nil

@@ -7,7 +7,7 @@ import (
 	"bbscout/models"
 )
 
-var JwtKey = []byte("jOvJrciv7VGxFDy1KVGRg3WNiv2KngQa5")
+var JwtKey = []byte("jOvJrciv7VGx45y1KVGRg3WNiv2KngQa5")
 
 type Claims struct {
 	OwnerID  uuid.UUID `json:"accessor"`
@@ -19,6 +19,7 @@ type AccountClaims struct {
 	OwnerID     uuid.UUID  `json:"accessor"`
 	Accessing   uuid.UUID  `json:"accessing"`
 	Accessor    *uuid.UUID `json:"access"`
+	CodeSl      string     `json:"codesl,omitempty"`
 	Permissions []string   `json:"permissions"`
 	Username    string     `json:"username"`
 	jwt.RegisteredClaims
@@ -47,7 +48,7 @@ type TokenResponse struct {
 	User         models.UserModel         `json:"user"`
 	Account      *models.UserAccountModel `json:"account,omitempty"`
 	AccessToken  string                   `json:"accessToken"`
-	RefreshToken string                   `json:"refreshToken"`
+	RefreshToken string                   `json:"refreshToken,omitempty"`
 	Permissions  *[]string                `json:"permissions,omitempty"`
 }
 
