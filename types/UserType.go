@@ -7,11 +7,9 @@ type UserPayload struct {
 	MiddleName string  `json:"middleName"`
 	LastName   string  `json:"lastName"`
 	Email      string  `json:"email"`
-	UserNumber string  `json:"userNumber"`
 	Gender     int     `json:"gender"`
 	Phone      int     `json:"phone"`
 	Country    *string `json:"country"`
-	BirthDate  string  `json:"birthDate"`
 	Password   string  `json:"password"`
 }
 
@@ -23,7 +21,6 @@ type CreateStaffRequest struct {
 	Gender     int       `json:"gender"`
 	Phone      int       `json:"phone"`
 	Country    string    `json:"country"`
-	BirthDate  string    `json:"birthDate"`
 	RoleId     uuid.UUID `json:"roleId"`
 }
 
@@ -75,5 +72,4 @@ type UserInfo struct {
 	Picture       string `json:"picture"`        // Profile picture URL
 	GivenName     string `json:"given_name"`     // First name
 	FamilyName    string `json:"family_name"`    // Last name
-	Locale        string `json:"locale"`         // Language/region setting
 }

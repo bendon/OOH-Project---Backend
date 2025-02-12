@@ -22,5 +22,6 @@ func SecuredRoutes(r fiber.Router) {
 
 	// Organization
 	i.Get("/organization/profile", organization.GetOrganizationProfile)
+	i.Post("/new/staff", organization.NewOrganizationStaff)
 
 }

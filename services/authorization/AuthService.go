@@ -105,6 +105,9 @@ func PostSwtichAccounts(c *fiber.Ctx) error {
 	if _accErr != nil {
 		return utils.WriteError(c, fiber.StatusBadRequest, "User Account has either been locked or deactivated")
 	}
+	if account == nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "User Account has either been locked or deactivated")
+	}
 
 	perms, errPerm := userAccPermRepo.GetPermissionsByUserIdAndAccountId(user.OwnerID, account.ID)
 
@@ -232,21 +235,48 @@ func AuthGoogleVerify(c *fiber.Ctx) error {
 	// fmt.Println("Payload:", payload)
 
 	// // Convert payload to JSON
-	// userInfo := types.UserInfo{
-	// 	Sub:           payload.Claims["sub"].(string),
-	// 	Name:          payload.Claims["name"].(string),
-	// 	Email:         payload.Claims["email"].(string),
-	// 	EmailVerified: payload.Claims["email_verified"].(bool),
-	// 	Picture:       payload.Claims["picture"].(string),
-	// 	GivenName:     payload.Claims["given_name"].(string),
-	// 	FamilyName:    payload.Claims["family_name"].(string),
-	// 	Locale:        payload.Claims["locale"].(string),
-	// }
+	userInfo := &types.UserInfo{
+		Sub:           payload.Claims["sub"].(string),
+		Name:          payload.Claims["name"].(string),
+		Email:         payload.Claims["email"].(string),
+		EmailVerified: payload.Claims["email_verified"].(bool),
+		Picture:       payload.Claims["picture"].(string),
+		GivenName:     payload.Claims["given_name"].(string),
+		FamilyName:    payload.Claims["family_name"].(string),
+	}
 
 	// generate a JWT token
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"user": payload.Claims,
-	})
+	userRepo := repository.NewUserRepository()
+	user, err := userRepo.GetUserByEmail(userInfo.Email)
+
+	if err != nil || user == nil {
+		return utils.WriteError(c, fiber.StatusUnauthorized, "unauthorized. invalid credentials")
+	}
+
+	expirationTime := jwt.NewNumericDate(time.Now().Add(6 * time.Hour))
+
+	claims := &middleware.Claims{
+		OwnerID:  user.ID,
+		Username: user.Email,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: expirationTime,
+			NotBefore: jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(middleware.JwtKey)
+
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "unauthorized. server error")
+	}
+
+	response := middleware.TokenResponse{
+		User:        *user,
+		AccessToken: tokenString,
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
 
 }
