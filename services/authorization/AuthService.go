@@ -1,11 +1,15 @@
 package services
 
 import (
+	"context"
 	"fmt"
+	"net/http"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"google.golang.org/api/idtoken"
 
 	"bbscout/middleware"
 	"bbscout/repository"
@@ -201,6 +205,48 @@ func ChangePassword(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Password updated successfully",
 		"user":    updatedUser,
+	})
+
+}
+
+func HealthCheck(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Server is up and running",
+	})
+
+}
+
+func AuthGoogleVerify(c *fiber.Ctx) error {
+	// parse the request body
+	request := new(types.AuthGoogleVerificationRequest)
+	if err := c.BodyParser(request); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "Invalid request")
+	}
+
+	// Verify token using Google's API
+	payload, err := idtoken.Validate(context.Background(), request.Token, os.Getenv("GOOGLE_CLIENT_ID"))
+	if err != nil {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+	}
+
+	// fmt.Println("Payload:", payload)
+
+	// // Convert payload to JSON
+	// userInfo := types.UserInfo{
+	// 	Sub:           payload.Claims["sub"].(string),
+	// 	Name:          payload.Claims["name"].(string),
+	// 	Email:         payload.Claims["email"].(string),
+	// 	EmailVerified: payload.Claims["email_verified"].(bool),
+	// 	Picture:       payload.Claims["picture"].(string),
+	// 	GivenName:     payload.Claims["given_name"].(string),
+	// 	FamilyName:    payload.Claims["family_name"].(string),
+	// 	Locale:        payload.Claims["locale"].(string),
+	// }
+
+	// generate a JWT token
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"user": payload.Claims,
 	})
 
 }

@@ -62,3 +62,18 @@ type ChangePasswordRequest struct {
 	OldPassword string `json:"oldPassword"`
 	NewPassword string `json:"newPassword"`
 }
+
+type AuthGoogleVerificationRequest struct {
+	Token string `json:"token"`
+}
+
+type UserInfo struct {
+	Sub           string `json:"sub"`            // Unique Google user ID
+	Name          string `json:"name"`           // Full name
+	Email         string `json:"email"`          // Email address
+	EmailVerified bool   `json:"email_verified"` // Whether the email is verified
+	Picture       string `json:"picture"`        // Profile picture URL
+	GivenName     string `json:"given_name"`     // First name
+	FamilyName    string `json:"family_name"`    // Last name
+	Locale        string `json:"locale"`         // Language/region setting
+}
