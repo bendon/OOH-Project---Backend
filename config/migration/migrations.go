@@ -18,6 +18,12 @@ func InitializeMigrations() {
 		&models.RoleModel{},
 		&models.UserModel{},
 		&models.FileModel{},
+		&models.OrganizationModel{},
+		&models.UserAccountModel{},
+		&models.PermissionModel{},
+		&models.UserAccountPermissionModel{},
+		&models.UserRoleModel{},
+		&models.OrganizationUserModel{},
 	)
 	if errMigrationTables != nil {
 		log.Fatalf("failed to migrate tables: %v", errMigrationTables)
@@ -31,7 +37,7 @@ func InitializeMigrations() {
 
 func seedRoles(db *gorm.DB) {
 	fmt.Println("Startting roles seeding")
-	roles := []string{"USER"}
+	roles := []string{"USER", "ADMIN", "OPERATOR"}
 	for _, roleName := range roles {
 		// Use FirstOrCreate to avoid duplication
 		db.FirstOrCreate(&models.RoleModel{}, models.RoleModel{Name: roleName})
