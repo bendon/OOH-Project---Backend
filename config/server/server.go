@@ -9,6 +9,7 @@ import (
 	"bbscout/api"
 	"bbscout/config/initializer"
 	"bbscout/config/migration"
+	"bbscout/middleware"
 )
 
 type ApiServer struct {
@@ -34,6 +35,11 @@ func (s *ApiServer) Run() error {
 
 	api.PublicRoutes(group)
 
+	authGroup := group.Group("/en", middleware.CheckAuthentication)
+
+	api.AuthorizedRoutes(authGroup)
+	api.SecuredRoutes(authGroup)
+	app.Use(middleware.NotFoundMiddleware)
 
 	// initialize operation account
 	initializer.InitializerOperationAccount()
