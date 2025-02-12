@@ -29,8 +29,7 @@ FROM golang:1.23.0
 WORKDIR /app
 
 
-RUN apt-get update && \
-    apt-get install  wkhtmltopdf -y
+RUN apt-get update
     
 # Copy the compiled binary from the builder stage
 COPY --from=builder /app/bin/production ./bin/production
