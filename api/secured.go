@@ -6,6 +6,7 @@ import (
 	"bbscout/middleware"
 	auth "bbscout/services/authorization"
 	files "bbscout/services/files"
+	organization "bbscout/services/organization"
 )
 
 func SecuredRoutes(r fiber.Router) {
@@ -18,5 +19,8 @@ func SecuredRoutes(r fiber.Router) {
 
 	// change password
 	i.Post("/change/password", auth.ChangePassword)
+
+	// Organization
+	i.Get("/organization/profile", organization.GetOrganizationProfile)
 
 }
