@@ -35,12 +35,63 @@ func NewOrganizationStaff(c *fiber.Ctx) error {
 		return utils.WriteError(c, fiber.StatusBadRequest, "invalid request")
 	}
 	userRepo := repository.NewUserRepository()
+	orgUserRepo := repository.NewOrganizationUserRepository()
 
 	existUser, err := userRepo.GetUserByEmail(strings.ToLower(payload.Email))
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "failed to create staff")
 	}
 	if existUser != nil {
+
+		//check if user is already a staff in the organization
+		existsOrgUser, err := orgUserRepo.ExistUserOrganizationByUserId(existUser.ID, user.Accessor)
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusInternalServerError, "failed to create staff")
+		}
+
+		// if user is not a staff in the organization
+		if !existsOrgUser {
+			orgUser := &models.OrganizationUserModel{
+				OrganizationId: user.Accessor,
+				UserId:         existUser.ID,
+				CreatedById:    &user.OwnerID,
+			}
+			_, err := orgUserRepo.CreateOrganizationUser(orgUser)
+			if err != nil {
+				return utils.WriteError(c, fiber.StatusInternalServerError, "failed to create staff")
+			}
+			// create user account
+			accountRepo := repository.NewUserAccountRepository()
+
+			userAccout := &models.UserAccountModel{
+				UserId:         existUser.ID,
+				OrganizationId: &user.Accessor,
+				Active:         true,
+			}
+			account, err := accountRepo.CreateUserAccount(userAccout)
+			if err != nil || account == nil {
+				return utils.WriteError(c, fiber.StatusInternalServerError, "Failed to create user account")
+			}
+
+			// create user role
+			roleRepo := repository.NewUserRoleRepository()
+			userRole := &models.UserRoleModel{
+				UserId:         existUser.ID,
+				OrganizationId: user.Accessor,
+				RoleId:         payload.RoleId,
+			}
+			role, err := roleRepo.CreateUserRole(userRole)
+			if err != nil || role == nil {
+				return utils.WriteError(c, fiber.StatusInternalServerError, "Failed to create user role")
+			}
+
+			// add staff role to user
+			return c.Status(fiber.StatusOK).JSON(existUser)
+
+		}
+
+		// if user is already a staff in the organization
+
 		return utils.WriteError(c, fiber.StatusBadRequest, "email already exist")
 	}
 
@@ -61,8 +112,6 @@ func NewOrganizationStaff(c *fiber.Ctx) error {
 	}
 
 	// create organization user
-	orgUserRepo := repository.NewOrganizationUserRepository()
-
 	newOrgStaff := &models.OrganizationUserModel{
 		OrganizationId: user.Accessor,
 		UserId:         staff.ID,
@@ -99,5 +148,27 @@ func NewOrganizationStaff(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(staff)
+
+}
+
+func OrganizationStaffs(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	orgUserSummaryRepo := repository.NewOrganizationUserSummaryRepository()
+	staffs, err := orgUserSummaryRepo.GetOrganizationUserSummary(user.Accessor)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	return c.Status(fiber.StatusOK).JSON(staffs)
+
+}
+
+func OrganizationUserAnalytics(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	orgUserAnalyticsRepo := repository.NewOrganizationUserAnalyticsRepository()
+	analytics, err := orgUserAnalyticsRepo.GetOrganizationUserAnalyticsByOrganizationId(user.Accessor)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	return c.Status(fiber.StatusOK).JSON(analytics)
 
 }

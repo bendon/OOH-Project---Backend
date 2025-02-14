@@ -23,5 +23,14 @@ func SecuredRoutes(r fiber.Router) {
 	// Organization
 	i.Get("/organization/profile", organization.GetOrganizationProfile)
 	i.Post("/new/staff", organization.NewOrganizationStaff)
+	i.Get("/staffs", organization.OrganizationStaffs)
+	i.Get("/organization/user/analytics", organization.OrganizationUserAnalytics)
+
+	// billboard
+	i.Post("/billboard", organization.CreateBillBoard)
+	i.Get("/billboard/:id", organization.GetBillBoardById)
+	i.Get("/billboards", organization.GetBillBoards)
+	i.Delete("/delete/billboard/:id", organization.DeleteBillBoard)
+	i.Put("/update/billboard/:id", organization.UpdateBillBoard)
 
 }

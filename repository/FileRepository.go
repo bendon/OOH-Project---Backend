@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 
 	"bbscout/config/database"
@@ -11,9 +12,9 @@ import (
 
 type FileRepository interface {
 	CreateFile(file *models.FileModel) (*models.FileModel, error)
-	GetFileById(id string) (*models.FileModel, error)
+	GetFileById(id uuid.UUID) (*models.FileModel, error)
 	UpdateFile(file *models.FileModel) (*models.FileModel, error)
-	DeleteFile(id string) error
+	DeleteFile(id uuid.UUID) error
 	GetFiles() ([]models.FileModel, error)
 }
 
@@ -38,12 +39,12 @@ func (r *fileRepositoryImpl) CreateFile(file *models.FileModel) (*models.FileMod
 	}
 	return file, nil
 }
-func (r *fileRepositoryImpl) GetFileById(id string) (*models.FileModel, error) {
+func (r *fileRepositoryImpl) GetFileById(id uuid.UUID) (*models.FileModel, error) {
 	var file models.FileModel
 	err := r.db.Where("id = ?", id).First(&file).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("file not found")
+			return nil, nil
 		}
 		return nil, err
 	}
@@ -56,7 +57,7 @@ func (r *fileRepositoryImpl) UpdateFile(file *models.FileModel) (*models.FileMod
 	}
 	return file, nil
 }
-func (r *fileRepositoryImpl) DeleteFile(id string) error {
+func (r *fileRepositoryImpl) DeleteFile(id uuid.UUID) error {
 	err := r.db.Where("id = ?", id).Delete(&models.FileModel{}).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

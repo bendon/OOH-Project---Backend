@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 
+	"bbscout/middleware"
 	"bbscout/models"
 	"bbscout/repository"
 	"bbscout/services/s3"
@@ -16,7 +17,7 @@ import (
 )
 
 func UploadFile(c *fiber.Ctx) error {
-
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
 	fileRepo := repository.NewFileRepository()
 
 	file, err := c.FormFile("file")
@@ -46,8 +47,8 @@ func UploadFile(c *fiber.Ctx) error {
 		FileType:       file.Header.Get("Content-Type"),
 		FileExtension:  filepath.Ext(file.Filename),
 		FileUrl:        fileName,
-		UploadedById:   nil,
-		OrganizationId: nil,
+		UploadedById:   &user.OwnerID,
+		OrganizationId: &user.Accessor,
 	}
 
 	created, err := fileRepo.CreateFile(fileEntry)
