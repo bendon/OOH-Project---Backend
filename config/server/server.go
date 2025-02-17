@@ -26,7 +26,7 @@ func (s *ApiServer) Run() error {
 	migration.InitializeMigrations()
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "https://inventory.diracks.com, http://localhost:5173", // Replace with your frontend URL
+		AllowOrigins:     "https://scout.edgetech.co.ke, http://localhost:5173,http://localhost:5174", // Replace with your frontend URL
 		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,PUT",
 		AllowHeaders:     "Origin, Content-Type, Accept,Authorization",
 		AllowCredentials: true,
