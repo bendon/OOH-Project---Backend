@@ -26,10 +26,10 @@ func (s *ApiServer) Run() error {
 	migration.InitializeMigrations()
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "https://scout.edgetech.co.ke,http://localhost:5173,http://localhost", // Replace with your frontend URL
+		AllowOrigins:     "https://scout.edgetech.co.ke", // Replace with your frontend URL
 		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,PUT",
 		AllowHeaders:     "Origin, Content-Type, Accept,Authorization",
-		AllowCredentials: true,
+		AllowCredentials: false,
 	}))
 	group := app.Group("/api/v1")
 
