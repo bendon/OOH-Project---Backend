@@ -29,7 +29,7 @@ func (s *ApiServer) Run() error {
 		AllowOrigins:     "*", // Replace with your frontend URL
 		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,PUT",
 		AllowHeaders:     "Origin, Content-Type, Accept,Authorization",
-		AllowCredentials: true,
+		AllowCredentials: false,
 	}))
 	group := app.Group("/api/v1")
 
