@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 
 	"bbscout/api"
 	"bbscout/config/initializer"
@@ -24,12 +25,12 @@ func NewApiServer(addr string) *ApiServer {
 func (s *ApiServer) Run() error {
 	migration.InitializeMigrations()
 	app := fiber.New()
-	// app.Use(cors.New(cors.Config{
-	// 	AllowOrigins:     "https://scout.edgetech.co.ke", // Replace with your frontend URL
-	// 	AllowMethods:     "GET,POST,PUT,DELETE,PATCH,PUT",
-	// 	AllowHeaders:     "Origin, Content-Type, Accept,Authorization",
-	// 	AllowCredentials: false,
-	// }))
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "https://scout.edgetech.co.ke", // Replace with your frontend URL
+		AllowMethods:     "PATCH,GET,POST,PUT,DELETE,PUT",
+		AllowHeaders:     "Origin, Content-Type, Accept,Authorization",
+		AllowCredentials: false,
+	}))
 	group := app.Group("/api/v1")
 
 	api.PublicRoutes(group)
