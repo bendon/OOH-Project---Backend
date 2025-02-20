@@ -30,7 +30,7 @@ func SecuredRoutes(r fiber.Router) {
 	//roles
 	i.Get("/roles", organization.GetOrganizationRoles)
 	i.Post("/role", organization.CreateOrganizationRoles)
-	i.Patch("/role/update", organization.UpdateOrganizationRoles)
+	i.Post("/role/update", organization.UpdateOrganizationRoles)
 
 	// billboard
 	i.Post("/billboard", organization.CreateBillBoard)
