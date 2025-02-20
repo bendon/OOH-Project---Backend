@@ -1,9 +1,11 @@
 package services
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"bbscout/middleware"
 	"bbscout/models"
@@ -154,11 +156,27 @@ func NewOrganizationStaff(c *fiber.Ctx) error {
 func OrganizationStaffs(c *fiber.Ctx) error {
 	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
 	orgUserSummaryRepo := repository.NewOrganizationUserSummaryRepository()
-	staffs, err := orgUserSummaryRepo.GetOrganizationUserSummary(user.Accessor)
+
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	pageSize, _ := strconv.Atoi(c.Query("size", "20"))
+	search := c.Query("search", "")
+	data, totalCount, err := orgUserSummaryRepo.GetOrganizationUserSummaryPageable(user.Accessor, page, pageSize, search)
+	if err != nil || data == nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "error extracting user list")
+	}
+	response := utils.NewPaginationResponse(data, totalCount, page, pageSize)
+	return c.Status(fiber.StatusOK).JSON(response)
+
+}
+
+func GetOrganizationStaffById(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	orgUserRepo := repository.NewOrganizationUserSummaryRepository()
+	orgUser, err := orgUserRepo.GetOrganizationUserSummaryByUserId(uuid.MustParse(c.Params("staffId")), user.Accessor)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
 	}
-	return c.Status(fiber.StatusOK).JSON(staffs)
+	return c.Status(fiber.StatusOK).JSON(orgUser)
 
 }
 
@@ -170,5 +188,85 @@ func OrganizationUserAnalytics(c *fiber.Ctx) error {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
 	}
 	return c.Status(fiber.StatusOK).JSON(analytics)
+
+}
+
+func GetOrganizationRoles(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	roleRepo := repository.NewRoleRepository()
+	roles, err := roleRepo.GetRolesByOrganizationId(user.Accessor)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	return c.Status(fiber.StatusOK).JSON(roles)
+
+}
+
+func CreateOrganizationRoles(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	request := new(types.CreateRoleRequest)
+	if err := c.BodyParser(request); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "bad request")
+	}
+
+	// validate the request
+	if err := validate.Struct(request); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, err.Error())
+	}
+	roleRepo := repository.NewRoleRepository()
+
+	// check if role already exist in the organization
+	existRole, err := roleRepo.ExistsRoleByNameAndOrganizationId(request.Name, user.Accessor)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	if existRole {
+		return utils.WriteError(c, fiber.StatusBadRequest, "role already exist")
+	}
+
+	role := &models.RoleModel{
+		Name:           request.Name,
+		OrganizationId: &user.Accessor,
+	}
+
+	createRole, err := roleRepo.CreateRole(role)
+
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(createRole)
+
+}
+
+func UpdateOrganizationRoles(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	request := new(types.UpdateRoleRequest)
+	if err := c.BodyParser(request); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "bad request")
+	}
+
+	// validate the request
+	if err := validate.Struct(request); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, err.Error())
+	}
+	roleRepo := repository.NewRoleRepository()
+
+	// find the role
+	role, err := roleRepo.GetRoleByIdAndOrganizationId(request.RoleId, user.Accessor)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	if role == nil {
+		return utils.WriteError(c, fiber.StatusNotFound, "role not found")
+	}
+
+	role.Name = request.Name
+
+	updated, err := roleRepo.UpdateRole(role)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	return c.Status(fiber.StatusOK).JSON(updated)
 
 }

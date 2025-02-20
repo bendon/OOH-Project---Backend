@@ -32,14 +32,6 @@ type SwitchAccountPayload struct {
 	AccountId uuid.UUID `json:"accountId"`
 }
 
-type CreateRoleRequest struct {
-	Name string `json:"name"`
-}
-type UpdateRoleRequest struct {
-	RoleId uuid.UUID `json:"roleId"`
-	Name   string    `json:"name"`
-}
-
 type ChangeEmployeeRoleRequest struct {
 	RoleId uuid.UUID `json:"roleId"`
 	UserId uuid.UUID `json:"userId"`

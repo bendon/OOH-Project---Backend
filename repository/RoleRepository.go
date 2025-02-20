@@ -1,11 +1,13 @@
 package repository
 
 import (
-	"bbscout/config/database"
-	"bbscout/models"
+	"errors"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+
+	"bbscout/config/database"
+	"bbscout/models"
 )
 
 type RoleRepository interface {
@@ -64,6 +66,10 @@ func (r *roleRepositoryImpl) GetRoleByName(name string) (*models.RoleModel, erro
 	var role models.RoleModel
 	err := r.db.Where("name = ?", name).First(&role).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+
+		}
 		return nil, err
 	}
 	return &role, nil
@@ -81,6 +87,10 @@ func (r *roleRepositoryImpl) ExistsRoleByIdAndOrganizationId(id uuid.UUID, organ
 	var count int64
 	err := r.db.Model(&models.RoleModel{}).Where("id = ? AND organization_id = ?", id, organizationId).Count(&count).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+
+		}
 		return false, err
 	}
 	return count > 0, nil
@@ -89,6 +99,10 @@ func (r *roleRepositoryImpl) ExistsRoleByNameAndOrganizationId(name string, orga
 	var count int64
 	err := r.db.Model(&models.RoleModel{}).Where("name = ? AND organization_id = ?", name, organizationId).Count(&count).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+
+		}
 		return false, err
 	}
 	return count > 0, nil
@@ -97,6 +111,10 @@ func (r *roleRepositoryImpl) GetRoleByIdAndOrganizationId(id uuid.UUID, organiza
 	var role models.RoleModel
 	err := r.db.Where("id = ? AND organization_id = ?", id, organizationId).First(&role).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+
+		}
 		return nil, err
 	}
 	return &role, nil

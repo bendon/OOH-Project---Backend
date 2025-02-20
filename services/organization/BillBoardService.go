@@ -1,6 +1,8 @@
 package services
 
 import (
+	"strconv"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -82,11 +84,17 @@ func GetBillBoardById(c *fiber.Ctx) error {
 func GetBillBoards(c *fiber.Ctx) error {
 	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
 	billboardRepo := repository.NewBillBoardRepository()
-	billboards, err := billboardRepo.GetBillBoardsByOrganizationId(user.Accessor)
-	if err != nil {
-		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	pageSize, _ := strconv.Atoi(c.Query("size", "20"))
+	search := c.Query("search", "")
+
+	data, totalCount, err := billboardRepo.GetBillBoardsByOrganizationIdPageable(user.Accessor, page, pageSize, search)
+	if err != nil || data == nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "error extracting user list")
 	}
-	return c.Status(fiber.StatusOK).JSON(billboards)
+	response := utils.NewPaginationResponse(data, totalCount, page, pageSize)
+	return c.Status(fiber.StatusOK).JSON(response)
 }
 
 func DeleteBillBoard(c *fiber.Ctx) error {
