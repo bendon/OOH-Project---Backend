@@ -41,21 +41,40 @@ func CreateBillBoard(c *fiber.Ctx) error {
 		return utils.WriteError(c, fiber.StatusBadRequest, "invalid image id")
 	}
 
+	// create billboard sequence
+	boardSequenceRepo := repository.NewBillBoardSequenceRepository()
+
+	seqence := &models.BillboardSequenceModel{
+		OrganizationId: user.Accessor,
+	}
+	createdSequence, err := boardSequenceRepo.CreateBillBoardSequence(seqence)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "failed to create billboard sequence")
+	}
+	billboardSequence, err := boardSequenceRepo.GetBillBoardByIdAndOrganizationId(createdSequence.ID, user.Accessor)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+
+	boardCode := "BB" + utils.FormatToSixDigits(int(billboardSequence.BoardNumber))
+
 	// Create Billboard instance
 	billboard := &models.BillboardModel{
-		Title:          payload.Title,
-		Description:    payload.Description,
-		ImageId:        &payload.ImageID,
-		Location:       payload.Location,
-		Latitude:       payload.Latitude,
-		Longitude:      payload.Longitude,
-		Width:          payload.Width,
-		Height:         payload.Height,
-		Unit:           payload.Unit,
-		Type:           payload.Type,
-		Price:          &payload.Price,
-		CreatedById:    user.OwnerID,
-		OrganizationId: user.Accessor,
+		Description:     payload.Description,
+		BoardCode:       boardCode,
+		ImageId:         &payload.ImageID,
+		Location:        payload.Location,
+		Latitude:        payload.Latitude,
+		Longitude:       payload.Longitude,
+		Accuracy:        payload.Accuracy,
+		ParentBoardCode: payload.ParentBoardCode,
+		Width:           payload.Width,
+		Height:          payload.Height,
+		Unit:            payload.Unit,
+		Type:            payload.Type,
+		Price:           &payload.Price,
+		CreatedById:     user.OwnerID,
+		OrganizationId:  user.Accessor,
 	}
 
 	// create billboard
@@ -150,7 +169,8 @@ func UpdateBillBoard(c *fiber.Ctx) error {
 	billboard, _ := billboardRepo.GetBillBoardById(billboardOrg.ID)
 
 	// update billboard
-	billboard.Title = payload.Title
+	billboard.Accuracy = payload.Accuracy
+	billboard.ParentBoardCode = payload.ParentBoardCode
 	billboard.Description = payload.Description
 	billboard.ImageId = &file.ID
 	billboard.Location = payload.Location

@@ -10,6 +10,7 @@ import (
 	"math/big"
 	random "math/rand/v2"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -181,4 +182,17 @@ func GetDateTimeByDate(date string) string {
 	}
 	return parsedTime.Format("2006-01-02")
 
+}
+
+func FormatToSixDigits(value int) string {
+
+	// Convert the integer to a string
+	valueStr := strconv.Itoa(value)
+
+	// Format with leading zeros if length is less than 6
+	if len(valueStr) < 6 {
+		return fmt.Sprintf("%06d", value)
+	}
+
+	return valueStr
 }

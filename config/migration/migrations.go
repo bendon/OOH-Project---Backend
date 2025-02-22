@@ -3,6 +3,7 @@ package migration
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"gorm.io/gorm"
 
@@ -25,6 +26,7 @@ func InitializeMigrations() {
 		&models.UserRoleModel{},
 		&models.OrganizationUserModel{},
 		&models.BillboardModel{},
+		&models.BillboardSequenceModel{},
 	)
 	if errMigrationTables != nil {
 		log.Fatalf("failed to migrate tables: %v", errMigrationTables)
@@ -90,6 +92,37 @@ func InitializeMigrations() {
 
 	if err := db.Exec(createOrganizationAnalyticsQuery).Error; err != nil {
 		log.Fatalf("failed to create view: %v", err)
+	}
+
+	dropTriggerboardSequencesTrigger := `DROP TRIGGER IF EXISTS before_insert_bill_board_sequences;`
+	if err := db.Exec(dropTriggerboardSequencesTrigger).Error; err != nil {
+		log.Fatalf("failed to drop trigger: %v", err)
+	}
+
+	triggerSQL := `
+		
+		DELIMITER $$
+
+		CREATE TRIGGER before_insert_bill_board_sequences
+		BEFORE INSERT ON bill_board_sequences
+		FOR EACH ROW
+		BEGIN
+			DECLARE max_board_number BIGINT;
+			SELECT COALESCE(MAX(board_number), 0) INTO max_board_number
+			FROM bill_board_sequences
+			WHERE organization_id = NEW.organization_id;
+
+			SET NEW.board_number = max_board_number + 1;
+		END$$
+
+		DELIMITER ;
+	`
+
+	cleanSQL := strings.ReplaceAll(triggerSQL, "DELIMITER $$", "")
+	cleanSQL = strings.ReplaceAll(cleanSQL, "DELIMITER ;", "")
+	cleanSQL = strings.ReplaceAll(cleanSQL, "$$", ";") // Replace $$ with ;
+	if err := db.Exec(cleanSQL).Error; err != nil {
+		log.Fatalf("failed to create trigger: %v", err)
 	}
 
 	fmt.Println("Finished migration tables")
