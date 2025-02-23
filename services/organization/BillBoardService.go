@@ -2,6 +2,7 @@ package services
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -186,4 +187,252 @@ func UpdateBillBoard(c *fiber.Ctx) error {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
 	}
 	return c.Status(fiber.StatusOK).JSON(updatedBillBoard)
+}
+
+func CreateBillboardCampaign(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	var payload types.CreateBillboardCampaignRequest
+	if err := c.BodyParser(&payload); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "invalid request")
+	}
+	//validate request
+	if err := validate.Struct(payload); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, err.Error())
+	}
+
+	// check if the billboard id has active campaign
+	billboardCampRepo := repository.NewBillboardCampaignRepository()
+	active, err := billboardCampRepo.FindBillboardCampaignByOrganizationIdAndBillboardIdAndActive(user.Accessor, payload.BillboardId, true)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	if active != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "bill board has active campaign")
+	}
+
+	//// check if the billboard id exists
+	billboardRepo := repository.NewBillBoardRepository()
+	billboard, err := billboardRepo.GetBillBoardByIdAndOrganizationId(payload.BillboardId, user.Accessor)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	if billboard == nil {
+		return utils.WriteError(c, fiber.StatusNotFound, "billboard not found")
+	}
+	// create the campaign
+	var startDate *int64
+	var endDate *int64
+
+	// check if the payload has start date and end date thenconvert them to unix
+	if payload.StartDate != nil {
+		date, err := time.Parse("2006-01-02", *payload.StartDate)
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusBadRequest, "invalid start date")
+		}
+		unix := date.Unix()
+		startDate = &unix
+	}
+	if payload.EndDate != nil {
+		date, err := time.Parse("2006-01-02", *payload.EndDate)
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusBadRequest, "invalid end date")
+		}
+		unix := date.Unix()
+		endDate = &unix
+	}
+
+	campaign := &models.BillboardCampaignModel{
+		OrganizationId:      user.Accessor,
+		BillboardId:         payload.BillboardId,
+		StartDate:           startDate,
+		EndDate:             endDate,
+		CampaignDescription: payload.CampaignDescription,
+		CampaignInsights:    payload.CampaignInsight,
+		CreatedById:         user.OwnerID,
+		Location:            payload.Location,
+		ClientFirstName:     payload.ClientFirstName,
+		ClientLastName:      payload.ClientLastName,
+		Email:               payload.Email,
+		Phone:               payload.Phone,
+		ImageId:             payload.ImageId,
+		Active:              true,
+	}
+
+	createdCampaign, err := billboardCampRepo.CreateBillboardCampaign(campaign)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	return c.Status(fiber.StatusCreated).JSON(createdCampaign)
+
+}
+
+func GetBillBaordsOrganizationCampaigns(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	billboardCampRepo := repository.NewBillboardCampaignRepository()
+
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	pageSize, _ := strconv.Atoi(c.Query("size", "20"))
+	search := c.Query("search", "")
+	data, totalCount, err := billboardCampRepo.FindBillboardCampaignByOrganizationId(user.Accessor, page, pageSize, search)
+	if err != nil || data == nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "error extracting user list")
+	}
+	response := utils.NewPaginationResponse(data, totalCount, page, pageSize)
+	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+func GetCampaignById(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	billboardCampRepo := repository.NewBillboardCampaignRepository()
+	id := uuid.MustParse(c.Params("campaignId"))
+	campaign, err := billboardCampRepo.GetBillboardCampaignByIdAndOrganizationId(id, user.Accessor)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	if campaign == nil {
+		return utils.WriteError(c, fiber.StatusNotFound, "campaign not found")
+	}
+	return c.Status(fiber.StatusOK).JSON(campaign)
+
+}
+
+func GetBillboardHistryCampaigns(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	billboardCampRepo := repository.NewBillboardCampaignRepository()
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	pageSize, _ := strconv.Atoi(c.Query("size", "20"))
+	search := c.Query("search", "")
+	data, totalCount, err := billboardCampRepo.FindBillboardCampaignByOrganizationIdAndBillboardIdPageable(user.Accessor, uuid.MustParse(c.Params("billboardId")), page, pageSize, search)
+	if err != nil || data == nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "error extracting user list")
+	}
+	response := utils.NewPaginationResponse(data, totalCount, page, pageSize)
+	return c.Status(fiber.StatusOK).JSON(response)
+
+}
+
+func UpdateBillboardCampaign(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	payload := new(types.UpdateBillboardCampaignRequest)
+	if err := c.BodyParser(payload); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, err.Error())
+	}
+
+	billboardCampRepo := repository.NewBillboardCampaignRepository()
+
+	compaignId := uuid.MustParse(c.Params("campaignId"))
+
+	// validate the payload
+	if err := validate.Struct(payload); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, err.Error())
+	}
+
+	// check if the campaign id exists
+	campaign, err := billboardCampRepo.GetBillboardCampaignByIdAndOrganizationId(compaignId, user.Accessor)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	if campaign == nil {
+		return utils.WriteError(c, fiber.StatusNotFound, "campaign not found")
+	}
+
+	// update the campaign
+	var startDate *int64
+	var endDate *int64
+
+	// check if the payload has start date and end date thenconvert them to unix
+	if payload.StartDate != nil {
+		date, err := time.Parse("2006-01-02", *payload.StartDate)
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusBadRequest, "invalid start date")
+		}
+		unix := date.Unix()
+		startDate = &unix
+	}
+	if payload.EndDate != nil {
+		date, err := time.Parse("2006-01-02", *payload.EndDate)
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusBadRequest, "invalid end date")
+		}
+		unix := date.Unix()
+		endDate = &unix
+	}
+
+	campaign.StartDate = startDate
+	campaign.EndDate = endDate
+	campaign.CampaignDescription = payload.CampaignDescription
+	campaign.CampaignInsights = payload.CampaignInsight
+	campaign.Location = payload.Location
+	campaign.ClientFirstName = payload.ClientFirstName
+	campaign.ClientLastName = payload.ClientLastName
+	campaign.Email = payload.Email
+	campaign.Phone = payload.Phone
+	campaign.ImageId = payload.ImageId
+
+	updated, err := billboardCampRepo.UpdateBillboardCampaign(campaign)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+
+	return c.Status(fiber.StatusOK).JSON(updated)
+
+}
+func DeleteBillboardCampaign(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	billboardCampRepo := repository.NewBillboardCampaignRepository()
+	compaignId := uuid.MustParse(c.Params("campaignId"))
+
+	// check if the campaign id exists
+	campaign, err := billboardCampRepo.GetBillboardCampaignByIdAndOrganizationId(compaignId, user.Accessor)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	if campaign == nil {
+		return utils.WriteError(c, fiber.StatusNotFound, "campaign not found")
+	}
+
+	// update the campaign
+	campaign.Active = false
+	updated, err := billboardCampRepo.UpdateBillboardCampaign(campaign)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+
+	// delete the campaign
+
+	err = billboardCampRepo.DeleteBillboardCampaign(updated.ID)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+
+	return c.Status(fiber.StatusNoContent).JSON(nil)
+
+}
+
+func CloseBillboardCampaign(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	billboardCampRepo := repository.NewBillboardCampaignRepository()
+	compaignId := uuid.MustParse(c.Params("campaignId"))
+
+	// check if the campaign id exists
+	campaign, err := billboardCampRepo.GetBillboardCampaignByIdAndOrganizationId(compaignId, user.Accessor)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	if campaign == nil {
+		return utils.WriteError(c, fiber.StatusNotFound, "campaign not found")
+	}
+
+	// update the campaign close
+	closeDate := time.Now().Unix()
+	campaign.Active = false
+	campaign.ClosedDate = &closeDate
+	updated, err := billboardCampRepo.UpdateBillboardCampaign(campaign)
+
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+
+	return c.Status(fiber.StatusOK).JSON(updated)
+
 }

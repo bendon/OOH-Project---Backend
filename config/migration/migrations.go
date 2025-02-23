@@ -27,6 +27,7 @@ func InitializeMigrations() {
 		&models.OrganizationUserModel{},
 		&models.BillboardModel{},
 		&models.BillboardSequenceModel{},
+		&models.BillboardCampaignModel{},
 	)
 	if errMigrationTables != nil {
 		log.Fatalf("failed to migrate tables: %v", errMigrationTables)
