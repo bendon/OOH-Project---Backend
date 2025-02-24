@@ -242,6 +242,8 @@ func CreateBillboardCampaign(c *fiber.Ctx) error {
 	}
 
 	campaign := &models.BillboardCampaignModel{
+		CampaignBrand:       payload.CampaignBrand,
+		Others:              payload.Others,
 		OrganizationId:      user.Accessor,
 		BillboardId:         payload.BillboardId,
 		StartDate:           startDate,
@@ -368,7 +370,8 @@ func UpdateBillboardCampaign(c *fiber.Ctx) error {
 	campaign.Email = payload.Email
 	campaign.Phone = payload.Phone
 	campaign.ImageId = payload.ImageId
-
+	campaign.CampaignBrand = payload.CampaignBrand
+	campaign.Others = payload.Others
 	updated, err := billboardCampRepo.UpdateBillboardCampaign(campaign)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
