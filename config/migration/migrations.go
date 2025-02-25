@@ -126,6 +126,36 @@ func InitializeMigrations() {
 		log.Fatalf("failed to create trigger: %v", err)
 	}
 
+	createBillboardSummaryQuery := `
+	CREATE OR REPLACE VIEW billboard_summary AS
+	SELECT 
+	bb.organization_id AS organization_id,
+		bb.id AS billboard_id,
+		bb.board_code,
+		bb.created_by_id,
+		bb.location,
+		bb.latitude,
+		bb.longitude,
+		bb.width,
+		bb.height,
+		bb.unit,
+		bb.type,
+		bb.price,
+		bb.active AS billboard_active,
+		bc.id AS campaign_id,
+		COALESCE(bc.active, false) AS campaign_active,
+		bb.image_id,
+		bb.created_at,
+		bb.updated_at
+	FROM bill_boards bb
+	LEFT JOIN billboard_campaign bc 
+	ON bb.id = bc.billboard_id
+	AND bc.active = true;`
+
+	if err := db.Exec(createBillboardSummaryQuery).Error; err != nil {
+		log.Fatalf("failed to create view: %v", err)
+	}
+
 	fmt.Println("Finished migration tables")
 
 }

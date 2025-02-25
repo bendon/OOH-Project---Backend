@@ -439,3 +439,35 @@ func CloseBillboardCampaign(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(updated)
 
 }
+
+func MyBillBoardsUploads(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	billboardSummaryRepo := repository.NewBillBoardSummaryRepository()
+
+	// get staff uploads
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	pageSize, _ := strconv.Atoi(c.Query("size", "20"))
+	search := c.Query("search", "")
+	data, totalCount, err := billboardSummaryRepo.GetStaffBillBoardsSummary(user.Accessor, user.OwnerID, page, pageSize, search)
+	if err != nil || data == nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "error extracting user list")
+	}
+	response := utils.NewPaginationResponse(data, totalCount, page, pageSize)
+	return c.Status(fiber.StatusOK).JSON(response)
+
+}
+
+func MyBillBoardById(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	billboardSummaryRepo := repository.NewBillBoardSummaryRepository()
+
+	id := uuid.MustParse(c.Params("billboardId"))
+
+	board, err := billboardSummaryRepo.GetStaffBillBoardsSummaryById(id, user.OwnerID)
+
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "error fetching the billboard")
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(board)
+}

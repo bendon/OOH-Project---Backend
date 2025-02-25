@@ -18,6 +18,7 @@ type BillBoardRepository interface {
 	GetBillBoardByIdAndOrganizationId(id uuid.UUID, organizationId uuid.UUID) (*models.BillboardModel, error)
 	GetBillBoardsByOrganizationId(organizationId uuid.UUID) ([]models.BillboardModel, error)
 	GetBillBoardsByOrganizationIdPageable(organizationId uuid.UUID, page int, size int, search string) ([]models.BillboardModel, int64, error)
+	GetBillboardUploadsByOrganizationIdAndCreatedById(organizationId uuid.UUID, createdById uuid.UUID, page int, size int, search string) ([]models.BillboardModel, int64, error)
 }
 type billBoardRepositoryImpl struct {
 	db *gorm.DB
@@ -91,6 +92,16 @@ func (r *billBoardRepositoryImpl) GetBillBoardsByOrganizationIdPageable(organiza
 	var billboards []models.BillboardModel
 	var count int64
 	err := r.db.Preload("Image").Where("organization_id = ? AND title LIKE ?", organizationId, "%"+search+"%").Offset((page - 1) * size).Limit(size).Find(&billboards).Count(&count).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return billboards, count, nil
+}
+
+func (r *billBoardRepositoryImpl) GetBillboardUploadsByOrganizationIdAndCreatedById(organizationId uuid.UUID, createdById uuid.UUID, page int, size int, search string) ([]models.BillboardModel, int64, error) {
+	var billboards []models.BillboardModel
+	var count int64
+	err := r.db.Preload("Image").Where("organization_id = ? AND created_by_id = ? AND board_code LIKE ?", organizationId, createdById, "%"+search+"%").Offset((page - 1) * size).Limit(size).Find(&billboards).Count(&count).Error
 	if err != nil {
 		return nil, 0, err
 	}

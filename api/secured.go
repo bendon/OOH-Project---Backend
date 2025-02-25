@@ -38,6 +38,8 @@ func SecuredRoutes(r fiber.Router) {
 	i.Get("/billboards", organization.GetBillBoards)
 	i.Delete("/delete/billboard/:id", organization.DeleteBillBoard)
 	i.Put("/update/billboard/:id", organization.UpdateBillBoard)
+	i.Get("/my/billboardds/uploads", organization.MyBillBoardsUploads)
+	i.Get("/my/billboards/:billboardId", organization.MyBillBoardById)
 
 	// billboard campaigns
 	i.Post("/billboard/campaign", organization.CreateBillboardCampaign)
