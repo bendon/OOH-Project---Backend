@@ -14,7 +14,7 @@ type CreateBillboardRequest struct {
 	Height          float64   `json:"height" validate:"required,gt=0"`
 	Unit            string    `json:"unit" validate:"required,oneof=centimeters meters feet inches"`
 	Type            string    `json:"type"`
-	Price           float64   `json:"price" validate:"required,gt=0"`
+	Price           float64   `json:"price" `
 }
 
 type UpdateBillboardRequest struct {
