@@ -13,7 +13,7 @@ type CreateBillboardRequest struct {
 	Width           float64   `json:"width" validate:"required,gt=0"`
 	Height          float64   `json:"height" validate:"required,gt=0"`
 	Unit            string    `json:"unit" validate:"required,oneof=centimeters meters feet inches"`
-	Type            string    `json:"type" validate:"required,oneof=digital static LED traditional"`
+	Type            string    `json:"type" validate:"required,oneof='Static Billboard','Digital Billboard','Banner Ads','Wallscapes','Mobile Billboards','Lamp Posts','Interactive Billboards'"`
 	Price           float64   `json:"price" validate:"required,gt=0"`
 }
 

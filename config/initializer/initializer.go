@@ -141,6 +141,7 @@ func CreatePermissions() {
 		"Add Employees",
 		"Staff",
 		"Manage Roles",
+		"Manage Permissions",
 		"Add Roles",
 		"Update Roles",
 	}

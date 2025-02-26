@@ -65,3 +65,7 @@ type UserInfo struct {
 	GivenName     string `json:"given_name"`     // First name
 	FamilyName    string `json:"family_name"`    // Last name
 }
+
+type UpdateStaffPermissionsRequest struct {
+	PermissionIds []uuid.UUID `json:"permissionIds"`
+}

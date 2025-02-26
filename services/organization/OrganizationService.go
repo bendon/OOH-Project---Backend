@@ -292,3 +292,92 @@ func UpdateOrganizationRoles(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(updated)
 
 }
+
+func GetPermissions(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	if !utils.CheckAccessPermission("Manage Permissions", user.Permissions) {
+		return utils.WriteError(c, fiber.StatusForbidden, "Acccess denied")
+	}
+	permissionRepo := repository.NewPermissionRepository()
+	permissions, err := permissionRepo.GetPermissionsByAccount("ORGANIZATION")
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	return c.Status(fiber.StatusOK).JSON(permissions)
+
+}
+
+func GetStaffPermissions(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	userAccRepo := repository.NewUserAccountRepository()
+	userAccPermRepo := repository.NewUserAccountPermissionRepository()
+
+	account, _accErr := userAccRepo.GetUserAccountByUserIdAndOrganizationId(uuid.MustParse(c.Params("staffId")), user.Accessor)
+	if _accErr != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "User Account has either been locked or deactivated")
+	}
+	if account == nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "User Account has either been locked or deactivated")
+	}
+
+	perms, errPerm := userAccPermRepo.GetPermissionsByUserIdAndAccountId(user.OwnerID, account.ID)
+
+	if errPerm != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "Unable to fetch permissions")
+	}
+
+	return c.Status(fiber.StatusOK).JSON(perms)
+
+}
+
+func UpdateStaffPermissions(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	request := new(types.UpdateStaffPermissionsRequest)
+	if err := c.BodyParser(request); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "bad request")
+	}
+
+	staffId := uuid.MustParse(c.Params("staffId"))
+
+	userAccRepo := repository.NewUserAccountRepository()
+	userAccPermRepo := repository.NewUserAccountPermissionRepository()
+
+	account, _accErr := userAccRepo.GetUserAccountByUserIdAndOrganizationId(staffId, user.Accessor)
+	if _accErr != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "User Account has either been locked or deactivated")
+	}
+	if account == nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "User Account has either been locked or deactivated")
+	}
+
+	// remove all permissions from the account
+	err := userAccPermRepo.DeleteUserAccountPermissionsByUserIdAndAccountId(user.OwnerID, account.ID)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "Unable to update permissions")
+	}
+
+	// loop through the permissions and check if they exist and add them to user account
+	for _, permission := range request.PermissionIds {
+		permission, err := repository.NewPermissionRepository().GetPermissionById(permission)
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusInternalServerError, "Unable to update permissions")
+		}
+		if permission == nil {
+			return utils.WriteError(c, fiber.StatusBadRequest, "Permission not found")
+		}
+		userAccPermRepo.CreateUserAccountPermission(&models.UserAccountPermissionModel{
+			OrganizationId: user.Accessor,
+			UserId:         user.OwnerID,
+			AccountId:      account.ID,
+			PermissionId:   permission.ID,
+		})
+	}
+
+	userPermissions, err := userAccPermRepo.GetPermissionsByUserIdAndAccountId(user.OwnerID, account.ID)
+
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "Unable to update permissions")
+	}
+	return c.Status(fiber.StatusOK).JSON(userPermissions)
+
+}

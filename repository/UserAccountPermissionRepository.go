@@ -1,11 +1,11 @@
 package repository
 
 import (
-	"bbscout/config/database"
-	"bbscout/models"
-
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+
+	"bbscout/config/database"
+	"bbscout/models"
 )
 
 type UserAccountPermissionRepository interface {
@@ -17,6 +17,7 @@ type UserAccountPermissionRepository interface {
 	GetUserAccountPermissionsByOrganizationId(accountId uuid.UUID, organizationId uuid.UUID) ([]models.PermissionModel, error)
 	DeleteUserAccountPermissionsByAccountId(accountId uuid.UUID) error
 	ExistsUserAccountPermissionByAccountIdAndPermissionId(accountId uuid.UUID, permissionId uuid.UUID, organizationId uuid.UUID) (bool, error)
+	DeleteUserAccountPermissionsByUserIdAndAccountId(userId uuid.UUID, accountId uuid.UUID) error
 }
 type userAccountPermissionRepositoryImpl struct {
 	db *gorm.DB
@@ -106,4 +107,11 @@ func (r *userAccountPermissionRepositoryImpl) ExistsUserAccountPermissionByAccou
 		return false, err
 	}
 	return count > 0, nil
+}
+func (r *userAccountPermissionRepositoryImpl) DeleteUserAccountPermissionsByUserIdAndAccountId(userId uuid.UUID, accountId uuid.UUID) error {
+	err := r.db.Where("user_id = ? AND account_id = ?", userId, accountId).Delete(&models.UserAccountPermissionModel{}).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }
