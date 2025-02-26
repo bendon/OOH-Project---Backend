@@ -3,6 +3,7 @@ package services
 import (
 	"html/template"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -495,5 +496,81 @@ func SendEmail(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "email sent successfully",
 	})
+
+}
+func CreateBillboardTypes(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	payload := new(types.BillboardTypeRequest)
+	if err := c.BodyParser(payload); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "invalid request")
+	}
+
+	//check if the billboard type already exists
+	billboardTypeRepo := repository.NewBillboardTypesRepository()
+	exists, err := billboardTypeRepo.ExistsBillboardTypeByName(strings.ToUpper(payload.Name))
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	if exists {
+		return utils.WriteError(c, fiber.StatusBadRequest, "billboard type already exists")
+	}
+
+	// create billboard type
+
+	types := &models.BillboardTypesModel{
+		Name:        strings.ToUpper(payload.Name),
+		CreatedById: user.OwnerID,
+	}
+
+	created, err := billboardTypeRepo.CreateBillboardType(types)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	return c.Status(fiber.StatusCreated).JSON(created)
+
+}
+
+func DeleteBillboardType(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	billboardTypeRepo := repository.NewBillboardTypesRepository()
+
+	id := uuid.MustParse(c.Params("typeId"))
+
+	exists, err := billboardTypeRepo.ExistsBillboardTypeById(id)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	if !exists {
+		return utils.WriteError(c, fiber.StatusNotFound, "billboard type not found")
+	}
+
+	// updated deleted by
+
+	boardTYpe, err := billboardTypeRepo.GetBillboardTypeByID(id)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	boardTYpe.DeletedById = &user.OwnerID
+
+	billboardTypeRepo.UpdateBillboardType(boardTYpe)
+
+	// delete billboard type
+	err = billboardTypeRepo.DeleteBillboardType(id)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+	return c.Status(fiber.StatusNoContent).JSON(nil)
+
+}
+
+func GetBillboardTypes(c *fiber.Ctx) error {
+	billboardTypeRepo := repository.NewBillboardTypesRepository()
+
+	types, err := billboardTypeRepo.GetBillboardTypes()
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+	}
+
+	return c.Status(fiber.StatusOK).JSON(types)
 
 }

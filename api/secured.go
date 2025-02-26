@@ -52,6 +52,9 @@ func SecuredRoutes(r fiber.Router) {
 	i.Put("/campaign/update/:campaignId", organization.UpdateBillboardCampaign)
 	i.Delete("/campaign/delete/:campaignId", organization.DeleteBillboardCampaign)
 	i.Post("/campaign/:campaignId/close", organization.CloseBillboardCampaign)
+	i.Post("/create/billboard/types", organization.CreateBillboardTypes)
+	i.Delete("/delete/billboard/type/:typeId", organization.DeleteBillboardType)
+	i.Get("/list/billboard/types", organization.GetBillboardTypes)
 
 	// send email
 	i.Post("/send/email", organization.SendEmail)
