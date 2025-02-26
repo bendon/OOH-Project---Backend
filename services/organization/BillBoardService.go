@@ -1,6 +1,7 @@
 package services
 
 import (
+	"html/template"
 	"strconv"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"bbscout/middleware"
 	"bbscout/models"
 	"bbscout/repository"
+	emails "bbscout/services/email"
 	"bbscout/types"
 	"bbscout/utils"
 )
@@ -470,4 +472,28 @@ func MyBillBoardById(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(board)
+}
+
+func SendEmail(c *fiber.Ctx) error {
+
+	request := new(types.SendEmailRequest)
+	if err := c.BodyParser(request); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "invalid request")
+	}
+
+	email := types.EmailPayload{
+		Name:         request.Name,
+		MailTo:       request.Email,
+		Subject:      request.Subject,
+		Body:         template.HTML(request.Body),
+		Link:         request.Link,
+		TemplateFile: "registration.html",
+	}
+
+	// send email to the user
+	go emails.SendEmail(email)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "email sent successfully",
+	})
+
 }

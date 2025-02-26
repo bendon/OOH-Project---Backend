@@ -34,6 +34,7 @@ RUN apt-get update
 # Copy the compiled binary from the builder stage
 COPY --from=builder /app/bin/production ./bin/production
 COPY --from=builder /app/.env ./.env
+COPY --from=builder /app/template ./template
 
 # Expose the port the application runs on
 EXPOSE 8100

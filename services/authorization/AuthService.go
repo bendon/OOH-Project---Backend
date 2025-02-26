@@ -157,6 +157,77 @@ func PostSwtichAccounts(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
+func RefreshToken(c *fiber.Ctx) error {
+
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	userRepo := repository.NewUserRepository()
+	profile, err := userRepo.GetUserById(user.OwnerID)
+
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusNotFound, "No accounts found for user")
+	}
+
+	userAccRepo := repository.NewUserAccountRepository()
+	userAccPermRepo := repository.NewUserAccountPermissionRepository()
+
+	//check if the account is active or
+
+	account, _accErr := userAccRepo.GetUserAccountByUserIdAndId(profile.ID, user.Accessing)
+	if _accErr != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "User Account has either been locked or deactivated")
+	}
+	if account == nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "User Account has either been locked or deactivated")
+	}
+
+	perms, errPerm := userAccPermRepo.GetPermissionsByUserIdAndAccountId(user.OwnerID, account.ID)
+
+	if errPerm != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "Unable to fetch permissions")
+	}
+
+	// Extract permission names into a slice of strings
+	permissionNames := make([]string, len(perms))
+	for i, perm := range perms {
+		permissionNames[i] = perm.Name // Assuming PermissionModel has a Name field
+	}
+
+	// create new token account
+	expirationTime := jwt.NewNumericDate(time.Now().Add(6 * time.Hour))
+
+	tokenCodesl := utils.HashPassword([]byte("token"))
+
+	claims := &middleware.AccountClaims{
+		OwnerID:     profile.ID,
+		Username:    profile.Email,
+		Accessing:   account.ID,
+		Accessor:    account.OrganizationId,
+		CodeSl:      tokenCodesl,
+		Permissions: permissionNames,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: expirationTime,
+			NotBefore: jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(middleware.JwtKey)
+
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "unauthorized. server error")
+	}
+
+	response := middleware.TokenResponse{
+		User:         *profile,
+		Account:      account,
+		AccessToken:  tokenString,
+		RefreshToken: *GetRefreshToken(*claims),
+		Permissions:  &permissionNames,
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
+}
+
 func GetRefreshToken(claims middleware.AccountClaims) *string {
 	expirationTime := jwt.NewNumericDate(time.Now().Add(8 * time.Hour))
 	refreshTokenCodesl := utils.HashPassword([]byte("refreshToken"))

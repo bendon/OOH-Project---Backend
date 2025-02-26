@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome Email</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+        }
+        h6 {
+            color: #333333;
+        }
+        p {
+            font-size: 12px;
+            color: #272727;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        a:hover {
+            background-color: #218838;
+        }
+        .code{
+            background-color: #a5a3a3;
+            color: #ffffff;
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        
+        <h4>Hello, {{.Name}}!</h4>
+        <p>{{.Body}}</p>
+
+        {{if .Code}}
+        <h3 class="code">{{.Code}}</h3>
+        {{end}}
+
+        {{if .Link}}
+            <a href="{{.Link}}">Verify Email</a>
+        {{end}}
+
+        <h3>Best regards,</h3>
+        <h4>BBscout Support</h4>
+
+        <!-- <img width="98%" src="cid:welcomeImage" alt="Welcome to Duamsa Innovation" /> -->
+    </div>
+</body>
+</html>

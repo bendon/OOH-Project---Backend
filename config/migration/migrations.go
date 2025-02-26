@@ -156,6 +156,127 @@ func InitializeMigrations() {
 		log.Fatalf("failed to create view: %v", err)
 	}
 
+	createBillboardWeeklyReportQuery := `
+	CREATE OR REPLACE VIEW billboard_upload_day_of_week AS
+		SELECT
+			o.id AS organization_id,
+			o.name AS organization_name,
+			o.description AS organization_description,
+			o.is_active AS organization_active,
+			YEAR(FROM_UNIXTIME(b.created_at)) AS upload_year,
+			MONTH(FROM_UNIXTIME(b.created_at)) AS upload_month,
+			WEEK(FROM_UNIXTIME(b.created_at), 1) AS upload_week_number,
+			DAYNAME(FROM_UNIXTIME(b.created_at)) AS upload_day_name,
+			COUNT(*) AS total_uploads
+		FROM
+			organization o
+		LEFT JOIN
+			bill_boards b ON b.organization_id = o.id
+		GROUP BY
+			o.id,
+			o.name,
+			o.description,
+			o.is_active,
+			YEAR(FROM_UNIXTIME(b.created_at)),
+			MONTH(FROM_UNIXTIME(b.created_at)),
+			WEEK(FROM_UNIXTIME(b.created_at), 1),
+			DAYNAME(FROM_UNIXTIME(b.created_at));`
+
+	if err := db.Exec(createBillboardWeeklyReportQuery).Error; err != nil {
+		log.Fatalf("failed to create view: %v", err)
+	}
+
+	createBillboardMonthlyReportQuery := `
+	CREATE OR REPLACE VIEW billboard_upload_monthly_report AS
+	SELECT
+		o.id AS organization_id,
+		o.name AS organization_name,
+		o.description AS organization_description,
+		o.is_active AS organization_active,
+		YEAR(FROM_UNIXTIME(b.created_at)) AS upload_year,
+		MONTH(FROM_UNIXTIME(b.created_at)) AS upload_month,
+		DATE_FORMAT(FROM_UNIXTIME(b.created_at), '%M') AS upload_month_name,
+		COUNT(*) AS total_uploads
+	FROM
+		organization o
+	LEFT JOIN
+		bill_boards b ON b.organization_id = o.id
+	GROUP BY
+		o.id,
+		o.name,
+		o.description,
+		o.is_active,
+		YEAR(FROM_UNIXTIME(b.created_at)),
+		MONTH(FROM_UNIXTIME(b.created_at)),
+		DATE_FORMAT(FROM_UNIXTIME(b.created_at), '%M');`
+
+	if err := db.Exec(createBillboardMonthlyReportQuery).Error; err != nil {
+		log.Fatalf("failed to create view: %v", err)
+	}
+
+	createBillboardOrganizationReportQuery := `
+	CREATE OR REPLACE VIEW billboard_organization_report AS
+		SELECT
+			o.id AS organization_id,
+			o.name AS organization_name,
+			o.description AS organization_description,
+			COUNT(DISTINCT b.id) AS total_uploads,
+			COUNT(DISTINCT CASE WHEN c.active = TRUE THEN b.id END) AS total_occupied,
+			COUNT(DISTINCT CASE WHEN c.active = FALSE OR c.id IS NULL THEN b.id END) AS total_not_occupied,
+			COUNT(DISTINCT CASE WHEN DATE(FROM_UNIXTIME(b.created_at)) = CURDATE() THEN b.id END) AS uploaded_today,
+			COUNT(DISTINCT CASE WHEN YEAR(FROM_UNIXTIME(b.created_at)) = YEAR(CURDATE())
+								AND MONTH(FROM_UNIXTIME(b.created_at)) = MONTH(CURDATE())
+								THEN b.id END) AS uploaded_this_month,
+			COUNT(DISTINCT CASE WHEN YEAR(FROM_UNIXTIME(b.created_at)) = YEAR(CURDATE()) THEN b.id END) AS uploaded_this_year
+		FROM
+			bill_boards b
+		LEFT JOIN
+			billboard_campaign c ON c.billboard_id = b.id
+		LEFT JOIN
+			organization o ON b.organization_id = o.id
+		GROUP BY
+			o.id, o.name, o.description;`
+
+	if err := db.Exec(createBillboardOrganizationReportQuery).Error; err != nil {
+		log.Fatalf("failed to create view: %v", err)
+	}
+
+	createBillboardOrganizationLocationReportQuery := `
+	CREATE OR REPLACE  VIEW billboard_organization_location_report AS
+		SELECT
+			o.id AS organization_id,
+			o.name AS organization_name,
+			b.location,
+			COUNT(*) AS count_per_location
+		FROM
+			bill_boards b
+		LEFT JOIN
+			organization o ON b.organization_id = o.id
+		GROUP BY
+			o.id, o.name,  b.location;`
+
+	if err := db.Exec(createBillboardOrganizationLocationReportQuery).Error; err != nil {
+		log.Fatalf("failed to create view: %v", err)
+	}
+
+	createBillboardOrganizationTypeReportQuery := `
+	CREATE OR REPLACE VIEW billboard_organization_type_report AS
+		SELECT
+			o.id AS organization_id,
+			o.name AS organization_name,
+			b.type,
+			COUNT(*) AS type_count
+		FROM
+			bill_boards b
+		LEFT JOIN
+			organization o ON b.organization_id = o.id
+		GROUP BY
+			o.id, o.name, b.type;`
+
+	if err := db.Exec(createBillboardOrganizationTypeReportQuery).Error; err != nil {
+		log.Fatalf("failed to create view: %v", err)
+	}
+
 	fmt.Println("Finished migration tables")
 
 }

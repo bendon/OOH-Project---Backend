@@ -1,6 +1,7 @@
 package services
 
 import (
+	"html/template"
 	"strconv"
 	"strings"
 
@@ -10,6 +11,7 @@ import (
 	"bbscout/middleware"
 	"bbscout/models"
 	"bbscout/repository"
+	emails "bbscout/services/email"
 	"bbscout/types"
 	"bbscout/utils"
 )
@@ -36,6 +38,7 @@ func NewOrganizationStaff(c *fiber.Ctx) error {
 	if err := c.BodyParser(&payload); err != nil {
 		return utils.WriteError(c, fiber.StatusBadRequest, "invalid request")
 	}
+	orgRepo := repository.NewOrganizationRepository()
 	userRepo := repository.NewUserRepository()
 	orgUserRepo := repository.NewOrganizationUserRepository()
 
@@ -97,6 +100,8 @@ func NewOrganizationStaff(c *fiber.Ctx) error {
 		return utils.WriteError(c, fiber.StatusBadRequest, "email already exist")
 	}
 
+	password, _ := utils.GeneratePassword(8)
+
 	newStaff := &models.UserModel{
 		FirstName:  payload.FirstName,
 		MiddleName: payload.MiddleName,
@@ -105,7 +110,7 @@ func NewOrganizationStaff(c *fiber.Ctx) error {
 		Gender:     payload.Gender,
 		Phone:      payload.Phone,
 		Country:    strings.ToUpper(payload.Country),
-		Password:   utils.HashPassword([]byte("password1234")),
+		Password:   utils.HashPassword([]byte(password)),
 	}
 
 	staff, err := userRepo.CreateUser(newStaff)
@@ -148,6 +153,23 @@ func NewOrganizationStaff(c *fiber.Ctx) error {
 	if err != nil || role == nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "Failed to create user role")
 	}
+
+	organization, err := orgRepo.GetOrganizationById(user.Accessor)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "failed to create staff")
+	}
+
+	email := types.EmailPayload{
+		Name:         staff.FirstName + " " + staff.LastName,
+		MailTo:       staff.Email,
+		Subject:      "New Account " + organization.Name,
+		Body:         template.HTML("<p>You have been added to " + organization.Name + ".</p><p>Use the below password to access your account and change your password.</p><p>Should you need any assistance or have questions, our support team is always ready to help. You can reach out to us at any time, and we'll ensure you receive the support you need.</p><p>Your password is <b>" + password + "</b>.</p>"),
+		Code:         &password,
+		TemplateFile: "registration.html",
+	}
+
+	// send email to the user
+	go emails.SendEmail(email)
 
 	return c.Status(fiber.StatusOK).JSON(staff)
 
