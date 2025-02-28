@@ -14,7 +14,7 @@ func PublicRoutes(app fiber.Router) {
 
 	//google verify Oauth2
 	app.Post("/auth/google/verify", services.AuthGoogleVerify)
-	app.Get("/file/:fileName", files.GetFileByName)
+	app.Get("/auth/file/:fileName", files.GetFileByName)
 
 	auth := app.Group("auth", middleware.CheckAccountRefreshTokenAuthentication)
 	auth.Post("/refresh/account", services.RefreshToken)
