@@ -294,10 +294,10 @@ func UpdateOrganizationRoles(c *fiber.Ctx) error {
 }
 
 func GetPermissions(c *fiber.Ctx) error {
-	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
-	if !utils.CheckAccessPermission("Manage Permissions", user.Permissions) {
-		return utils.WriteError(c, fiber.StatusForbidden, "Acccess denied")
-	}
+	// user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	// if !utils.CheckAccessPermission("Manage Permissions", user.Permissions) {
+	// 	return utils.WriteError(c, fiber.StatusForbidden, "Acccess denied")
+	// }
 	permissionRepo := repository.NewPermissionRepository()
 	permissions, err := permissionRepo.GetPermissionsByAccount("ORGANIZATION")
 	if err != nil {
