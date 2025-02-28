@@ -5,6 +5,7 @@ import (
 
 	"bbscout/middleware"
 	services "bbscout/services/authorization"
+	files "bbscout/services/files"
 )
 
 func PublicRoutes(app fiber.Router) {
@@ -13,6 +14,7 @@ func PublicRoutes(app fiber.Router) {
 
 	//google verify Oauth2
 	app.Post("/auth/google/verify", services.AuthGoogleVerify)
+	app.Get("/file/:fileName", files.GetFileByName)
 
 	auth := app.Group("auth", middleware.CheckAccountRefreshTokenAuthentication)
 	auth.Post("/refresh/account", services.RefreshToken)
