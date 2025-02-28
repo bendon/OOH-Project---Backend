@@ -278,6 +278,68 @@ func InitializeMigrations() {
 		log.Fatalf("failed to create view: %v", err)
 	}
 
+	createUserBillboardUploadReportReportQuery := `
+	CREATE OR REPLACE VIEW  user_billboard_uploads_report AS
+		SELECT 
+			u.id AS user_id,
+			CONCAT_WS(' ', u.first_name, COALESCE(u.middle_name, ''), u.last_name) AS user_name,
+			u.email,
+			o.id AS organization_id,
+			o.name AS organization_name,
+			COUNT(b.id) AS billboard_count
+		FROM users u
+		JOIN bill_boards b ON u.id = b.created_by_id
+		JOIN organization o ON b.organization_id = o.id
+		GROUP BY u.id, u.first_name, u.middle_name, u.last_name, u.email, o.id, o.name;`
+
+	if err := db.Exec(createUserBillboardUploadReportReportQuery).Error; err != nil {
+		log.Fatalf("failed to create view: %v", err)
+	}
+
+	createUserBillboardUploadReportWeQuery := `
+	CREATE OR REPLACE VIEW user_billboard_uploads_report_week AS
+		SELECT 
+			u.id AS user_id,
+			CONCAT_WS(' ', u.first_name, COALESCE(u.middle_name, ''), u.last_name) AS user_name,
+			u.email,
+			o.id AS organization_id,
+			o.name AS organization_name,
+			COUNT(b.id) AS billboard_count,
+			YEAR(FROM_UNIXTIME(b.created_at)) AS upload_year,
+			MONTH(FROM_UNIXTIME(b.created_at)) AS upload_month,
+			WEEK(FROM_UNIXTIME(b.created_at), 1) AS week_number,
+			DAYNAME(FROM_UNIXTIME(b.created_at)) AS day_of_week
+		FROM users u
+		JOIN bill_boards b ON u.id = b.created_by_id
+		JOIN organization o ON b.organization_id = o.id
+		GROUP BY u.id, u.first_name, u.middle_name, u.last_name, u.email, o.id, o.name, 
+				upload_year, upload_month, week_number, day_of_week;`
+
+	if err := db.Exec(createUserBillboardUploadReportWeQuery).Error; err != nil {
+		log.Fatalf("failed to create view: %v", err)
+	}
+
+	createUserBillboardUploadReportMonthlyQuery := `
+	CREATE OR REPLACE VIEW user_billboard_uploads_by_month_year AS
+		SELECT 
+			u.id AS user_id,
+			CONCAT_WS(' ', u.first_name, COALESCE(u.middle_name, ''), u.last_name) AS user_name,
+			u.email,
+			o.id AS organization_id,
+			o.name AS organization_name,
+			YEAR(FROM_UNIXTIME(b.created_at)) AS upload_year,
+			MONTH(FROM_UNIXTIME(b.created_at)) AS upload_month,
+			COUNT(b.id) AS billboard_count
+		FROM users u
+		JOIN bill_boards b ON u.id = b.created_by_id
+		JOIN organization o ON b.organization_id = o.id
+		GROUP BY u.id, u.first_name, u.middle_name, u.last_name, u.email, 
+				o.id, o.name, upload_year, upload_month;`
+
+	if err := db.Exec(createUserBillboardUploadReportMonthlyQuery).Error; err != nil {
+		log.Fatalf("failed to create view: %v", err)
+	}
+
 	fmt.Println("Finished migration tables")
 
 }
