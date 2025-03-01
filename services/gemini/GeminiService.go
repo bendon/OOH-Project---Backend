@@ -54,8 +54,8 @@ type CampaignDetails struct {
 	CampaignBrand       string `json:"campaign_brand"`
 	CampaignDescription string `json:"campaign_description"`
 	ContactInformation  struct {
-		Phone *int    `json:"phone"`
-		Email *string `json:"email"`
+		Phone []*int    `json:"phone"`
+		Email []*string `json:"email"`
 	} `json:"contact_information"`
 	Location              *string `json:"location"`
 	BillboardMeasurements struct {
@@ -63,12 +63,14 @@ type CampaignDetails struct {
 		Width  float64 `json:"width"`
 		Units  string  `json:"units"`
 	} `json:"billboard_measurements"`
-	TargetAudience     string   `json:"target_audience"`
-	AdditionalNotes    string   `json:"additional_notes"`
-	PercentageAccuracy float64  `json:"percentage_accuracy"`
-	SiteUrl            []string `json:"site_url"`
-	TargetAge          string   `json:"target_age"`
-	TargetGender       string   `json:"target_gender"`
+	TargetAudience     string      `json:"target_audience"`
+	AdditionalNotes    string      `json:"additional_notes"`
+	PercentageAccuracy float64     `json:"percentage_accuracy"`
+	SiteUrl            []string    `json:"site_url"`
+	TargetAge          string      `json:"target_age"`
+	TargetGender       string      `json:"target_gender"`
+	CampaignSocials    interface{} `json:"campaign_socials"`
+	OtherDetailts      interface{} `json:"other_details"`
 }
 
 func GetFileDataExtraction(c *fiber.Ctx) error {
@@ -97,12 +99,12 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 	instructions := `Analyze the provided image of a billboard and extract the following information as a JSON object:
 					campaign_brand: The brand or company advertising on the billboard.
 					campaign_description: A brief description of the advertisement or promotion.
-					contact_information: * phone: The contact phone number as integer, if available. If not visible, set to null.
-					email: The contact email address, if available. If not visible, set to null.
+					contact_information: * phone: The contact phone number as array integer default to empty array [].
+					email: The contact email address as array string default to empty array [].
 					location: The location of the billboard, if discernible from the image or context. If not visible, set to null.
 					billboard_measurements:
-					height: The estimated height of the billboard in meters. If not available, set to 0.
-					width: The estimated width of the billboard in meters. If not available, set to 0.
+					height: The estimated height of the billboard in meters. default 0.
+					width: The estimated width of the billboard in meters. default  0.
 					units: "meters"
 					target_audience: A brief description of the likely target audience based on the ad content and billboard placement.
 					Additional Notes as additional_notes:
@@ -111,6 +113,8 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 					Identify url on the image as site_url in array string if not place empty array.
 					Extract target age as target_age either (children, youth,adults,general).
 					Extract target gender as target_gender (female,male,general)
+					Extract socials on the image as campaign_socials object as key and value e.g facebook,instagram,twitter,twitter or x ,linkedIn, github, WhatsApp etc as array string else empty array.
+					Extract other details as other_details array object as key and value e.g [{key: price,value:100,currency: dollars }],etc as array string else empty array.
 					Format the output as a JSON object with the specified fields.`
 
 	// Prepare the request payload
