@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
@@ -9,7 +11,7 @@ import (
 )
 
 type BillboardUploadMonthlyReportRepository interface {
-	GetBillboardUploadMonthlyReport(organizationId uuid.UUID, year int, month int) ([]models.BillboardUploadMonthlyReport, error)
+	GetBillboardUploadMonthlyReport(organizationId uuid.UUID, year int, month int) (*models.BillboardUploadMonthlyReport, error)
 	GetBillboardUploadMonthlyReportByYear(organizationId uuid.UUID, year int) ([]models.BillboardUploadMonthlyReport, error)
 }
 type billboardUploadMonthlyReportRepositoryImpl struct {
@@ -26,13 +28,17 @@ func NewBillboardUploadMonthlyReportRepository() BillboardUploadMonthlyReportRep
 	}
 }
 
-func (r *billboardUploadMonthlyReportRepositoryImpl) GetBillboardUploadMonthlyReport(organizationId uuid.UUID, year int, month int) ([]models.BillboardUploadMonthlyReport, error) {
-	var billboards []models.BillboardUploadMonthlyReport
-	err := r.db.Where("organization_id = ? AND upload_year = ? AND upload_month = ?", organizationId, year, month).Find(&billboards).Error
+func (r *billboardUploadMonthlyReportRepositoryImpl) GetBillboardUploadMonthlyReport(organizationId uuid.UUID, year int, month int) (*models.BillboardUploadMonthlyReport, error) {
+	var billboards models.BillboardUploadMonthlyReport
+	err := r.db.Where("organization_id = ? AND upload_year = ? AND upload_month = ?", organizationId, year, month).First(&billboards).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+
+		}
 		return nil, err
 	}
-	return billboards, nil
+	return &billboards, nil
 }
 func (r *billboardUploadMonthlyReportRepositoryImpl) GetBillboardUploadMonthlyReportByYear(organizationId uuid.UUID, year int) ([]models.BillboardUploadMonthlyReport, error) {
 	var billboards []models.BillboardUploadMonthlyReport

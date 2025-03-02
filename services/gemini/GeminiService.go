@@ -181,12 +181,4 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(campaign)
 
-	// Return the extracted data as a JSON response
-	// return c.JSON(fiber.Map{
-	// 	"campaign_brand":       campaign.CampaignBrand,
-	// 	"campaign_description": campaign.CampaignDescription,
-	// 	"billboard_size":       fmt.Sprintf("%.2fx%.2f %s", campaign.BillboardMeasurements.Height, campaign.BillboardMeasurements.Width, campaign.BillboardMeasurements.Units),
-	// 	"target_audience":      campaign.TargetAudience,
-	// 	"additional_notes":     campaign.AdditionalNotes,
-	// })
 }
