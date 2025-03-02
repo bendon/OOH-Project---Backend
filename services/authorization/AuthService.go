@@ -235,7 +235,7 @@ func RefreshToken(c *fiber.Ctx) error {
 }
 
 func GetRefreshToken(claims middleware.AccountClaims) *string {
-	expirationTime := jwt.NewNumericDate(time.Now().Add(8 * time.Hour))
+	expirationTime := jwt.NewNumericDate(time.Now().Add(48 * time.Hour))
 	refreshTokenCodesl := utils.HashPassword([]byte("refreshToken"))
 
 	claims.CodeSl = refreshTokenCodesl
