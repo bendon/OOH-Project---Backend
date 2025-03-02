@@ -204,8 +204,6 @@ func CreateBillboardCampaign(c *fiber.Ctx) error {
 		return utils.WriteError(c, fiber.StatusBadRequest, err.Error())
 	}
 
-	return c.Status(fiber.StatusOK).JSON(payload)
-
 	// check if the billboard id has active campaign
 	billboardCampRepo := repository.NewBillboardCampaignRepository()
 	active, err := billboardCampRepo.FindBillboardCampaignByOrganizationIdAndBillboardIdAndActive(user.Accessor, payload.BillboardId, true)
