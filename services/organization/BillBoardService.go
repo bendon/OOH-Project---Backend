@@ -80,6 +80,7 @@ func CreateBillBoard(c *fiber.Ctx) error {
 		Price:           &payload.Price,
 		CreatedById:     user.OwnerID,
 		OrganizationId:  user.Accessor,
+		ObjectType:      payload.ObjectType,
 	}
 
 	// create billboard
@@ -186,6 +187,7 @@ func UpdateBillBoard(c *fiber.Ctx) error {
 	billboard.Unit = payload.Unit
 	billboard.Type = payload.Type
 	billboard.Price = &payload.Price
+	billboard.ObjectType = payload.ObjectType
 	updatedBillBoard, err := billboardRepo.UpdateBillBoard(billboard)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")

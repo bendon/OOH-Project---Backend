@@ -21,6 +21,7 @@ type CreateBillboardRequest struct {
 	Unit            string    `json:"unit" validate:"required,oneof=centimeters meters feet inches"`
 	Type            string    `json:"type"`
 	Price           float64   `json:"price" `
+	ObjectType      *string   `json:"objectType"`
 }
 
 type UpdateBillboardRequest struct {
@@ -36,6 +37,7 @@ type UpdateBillboardRequest struct {
 	Unit            string    `json:"unit" validate:"required,oneof=centimeters meters feet inches"`
 	Type            string    `json:"type" validate:"required,oneof=digital static LED traditional"`
 	Price           float64   `json:"price" validate:"required,gt=0"`
+	ObjectType      *string   `json:"objectType"`
 }
 
 type BillboardTypeRequest struct {

@@ -22,6 +22,7 @@ type BillboardModel struct {
 	Height          float64        `gorm:"type:double;column:height;not null" json:"height"`
 	Unit            string         `gorm:"type:enum('centimeters','meters','feet','inches');column:unit;not null" json:"unit"`
 	Type            string         `gorm:"type:varchar(255);column:type;not null" json:"type"`
+	ObjectType      *string        `gorm:"type:varchar(255);column:object_type;not null" json:"objectType"`
 	ParentBoardCode *string        `gorm:"type:varchar(1000);column:parent_board_code;null" json:"parentBoardCode"`
 	Price           *float64       `gorm:"type:decimal(10,2);column:price; null; default:0" json:"price"`
 	ImageId         *uuid.UUID     `gorm:"type:char(36);column:image_id; null" json:"image_id"`
