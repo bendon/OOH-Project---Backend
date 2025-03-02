@@ -74,6 +74,7 @@ type CampaignDetails struct {
 	CampaignSocials     interface{} `json:"campaign_socials"`
 	OtherDetailts       interface{} `json:"other_details"`
 	DetectionConfidence float64     `json:"detection_confidence"`
+	ObjectType          *string     `json:"object_type"`
 }
 
 func GetFileDataExtraction(c *fiber.Ctx) error {
