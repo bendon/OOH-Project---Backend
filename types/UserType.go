@@ -79,3 +79,10 @@ type UserRegisterRequest struct {
 	Phone      *int   `json:"phone"`
 	Password   string `json:"password" validate:"required"`
 }
+
+type ForgotPasswordRequest struct {
+	Email string `json:"email" validate:"required"`
+}
+type UpdatePasswordPayload struct {
+	Password string `json:"password"`
+}

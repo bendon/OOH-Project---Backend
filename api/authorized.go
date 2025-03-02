@@ -10,4 +10,5 @@ func AuthorizedRoutes(r fiber.Router) {
 	r.Get("/profile", services.GetUserProfile)
 	r.Get("/accounts", services.GetUserAccounts)
 	r.Post("/switch/account", services.PostSwtichAccounts)
+	r.Post("/forgot-password/update", services.UpdateUserPassword)
 }

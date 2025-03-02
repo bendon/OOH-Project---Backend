@@ -667,3 +667,109 @@ func Register(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(response)
 }
+
+func ForgotPassword(c *fiber.Ctx) error {
+	request := new(types.ForgotPasswordRequest)
+
+	// parse body request
+	if err := c.BodyParser(request); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "Invalid request")
+	}
+
+	// validate the request
+	if err := validate.Struct(request); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, err.Error())
+	}
+
+	userRepo := repository.NewUserRepository()
+
+	user, err := userRepo.GetUserByEmail(request.Email)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "User not found")
+	}
+
+	if user == nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "User with the email does not exist")
+	}
+
+	newPassword, ErrPassword := utils.GeneratePassword(8)
+	if ErrPassword != nil || newPassword == "" {
+		return utils.WriteError(c, fiber.StatusBadRequest, "Invalid credentials provided")
+	}
+
+	change := true
+	user.IsChange = &change
+	user.Password = utils.HashPassword([]byte(newPassword))
+
+	upatedUser, err := userRepo.UpdateUser(user)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "Error updating user")
+	}
+	if upatedUser == nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "Error resetting user password")
+	}
+
+	payloadEmail := types.EmailPayload{
+		Name:         user.FirstName + " " + user.LastName,
+		Body:         template.HTML("<p>Your account password has been reset successfully.</p><p>Use the provided password to access your account and change your password.</p><p>Should you need any assistance or have questions, our support team is always ready to help. You can reach out to us at any time, and we'll ensure you receive the support you need.</p>"),
+		Subject:      "Account Password Reset",
+		MailTo:       user.Email,
+		Code:         &newPassword,
+		TemplateFile: "registration.html",
+	}
+
+	go emails.SendEmail(payloadEmail)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  200,
+		"message": "successfully reset user account password",
+	})
+
+}
+
+func UpdateUserPassword(c *fiber.Ctx) error {
+	user := c.Locals("user").(*middleware.Claims)
+	request := new(types.UpdatePasswordPayload)
+
+	// parse body request
+	if err := c.BodyParser(request); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "Invalid request")
+	}
+
+	// validate the request
+	if err := validate.Struct(request); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, err.Error())
+	}
+
+	userRepo := repository.NewUserRepository()
+	profile, err := userRepo.GetUserById(user.OwnerID)
+	if err != nil || profile == nil {
+		return utils.WriteError(c, fiber.StatusUnauthorized, "Unauthorized access")
+	}
+
+	change := false
+	profile.IsChange = &change
+	profile.Password = utils.HashPassword([]byte(request.Password))
+	updatedUser, err := userRepo.UpdateUser(profile)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "Error updating user")
+	}
+	if updatedUser == nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "Error updating user password")
+	}
+
+	payloadEmail := types.EmailPayload{
+		Name:         profile.FirstName + " " + profile.LastName,
+		Body:         template.HTML("<p>Your account password has been updated successfully.</p><p>Should you need any assistance or have questions, our support team is always ready to help. You can reach out to us at any time, and we'll ensure you receive the support you need.</p>"),
+		Subject:      "Account Password Update",
+		MailTo:       profile.Email,
+		TemplateFile: "registration.html",
+	}
+
+	go emails.SendEmail(payloadEmail)
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  200,
+		"message": "password updated successfully",
+	})
+}
