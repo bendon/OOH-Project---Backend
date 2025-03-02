@@ -127,7 +127,7 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 					Identify url on the image as site_url in array string if not place empty array.
 					Extract target age as target_age either (children, youth,adults,general).
 					Extract target gender as target_gender (female,male,general)
-					Extract socials on the image as campaign_socials object as key and value e.g facebook,instagram,twitter,twitter or x ,linkedIn, github, WhatsApp etc as array string else empty array.
+					Extract socials on the image as campaign_socials object as key and value e.g facebook,instagram,twitter,twitter or x ,linkedIn, github, WhatsApp etc as object string else empty null.
 					Extract other details as other_details array object as key and value e.g [{key: price,value:100,currency: dollars }] etc as array string else empty array.
 					Format the output as a JSON object with the specified fields.`
 
