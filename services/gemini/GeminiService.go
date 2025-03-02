@@ -137,7 +137,7 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 			{
 				Parts: []Part{
 					{Text: instructions}, // User's instruction
-					{InlineData: &Image{MimeType: file.Header.Get("Content-Type"), Data: encodedImage}}, // Image
+					{InlineData: &Image{MimeType: mimeType, Data: encodedImage}}, // Image
 				},
 			},
 		},
