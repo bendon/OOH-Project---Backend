@@ -20,6 +20,7 @@ type RoleRepository interface {
 	ExistsRoleByIdAndOrganizationId(id uuid.UUID, organizationId uuid.UUID) (bool, error)
 	ExistsRoleByNameAndOrganizationId(name string, organizationId uuid.UUID) (bool, error)
 	GetRoleByIdAndOrganizationId(id uuid.UUID, organizationId uuid.UUID) (*models.RoleModel, error)
+	GetRoleByNameAndOrganizationId(name string, organizationId uuid.UUID) (*models.RoleModel, error)
 }
 type roleRepositoryImpl struct {
 	db *gorm.DB
@@ -33,7 +34,7 @@ func NewRoleRepository() RoleRepository {
 	return &roleRepositoryImpl{db: db}
 }
 func (r *roleRepositoryImpl) CreateRole(role *models.RoleModel) (*models.RoleModel, error) {
-	err := r.db.Create(role).Error
+	err := r.db.FirstOrCreate(&models.RoleModel{}, role).Error
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +115,18 @@ func (r *roleRepositoryImpl) GetRoleByIdAndOrganizationId(id uuid.UUID, organiza
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 
+		}
+		return nil, err
+	}
+	return &role, nil
+}
+
+func (r *roleRepositoryImpl) GetRoleByNameAndOrganizationId(name string, organizationId uuid.UUID) (*models.RoleModel, error) {
+	var role models.RoleModel
+	err := r.db.Where("name = ? AND organization_id = ?", name, organizationId).First(&role).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
 		}
 		return nil, err
 	}

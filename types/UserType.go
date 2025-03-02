@@ -69,3 +69,13 @@ type UserInfo struct {
 type UpdateStaffPermissionsRequest struct {
 	PermissionIds []uuid.UUID `json:"permissionIds"`
 }
+
+type UserRegisterRequest struct {
+	FirstName  string `json:"firstName" validate:"required"`
+	MiddleName string `json:"middleName"`
+	LastName   string `json:"lastName" validate:"required"`
+	Email      string `json:"email" validate:"required"`
+	Gender     *int   `json:"gender"`
+	Phone      *int   `json:"phone"`
+	Password   string `json:"password" validate:"required"`
+}

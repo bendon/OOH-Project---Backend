@@ -3,6 +3,8 @@ package initializer
 import (
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"bbscout/models"
 	"bbscout/repository"
 	"bbscout/utils"
@@ -34,14 +36,16 @@ func InitializerOperationAccount() {
 		return
 	}
 
+	phone := 25499991299
+	country := "KE"
 	admin := &models.UserModel{}
 	admin.Active = true
 	admin.Email = "operations@bbscout.com"
 	admin.Gender = 1
-	admin.Country = "Kenya"
+	admin.Country = &country
 	admin.FirstName = "BBScout"
 	admin.LastName = "Operations"
-	admin.Phone = 25499991299
+	admin.Phone = &phone
 	admin.Verified = true
 	admin.Password = utils.HashPassword([]byte("bbscout-password"))
 
@@ -74,6 +78,8 @@ func InitializerOperationAccount() {
 		fmt.Println("Failed to create organization account")
 		return
 	}
+
+	SeedRoles(org.ID)
 
 	// user role
 	userRole := &models.UserRoleModel{}
@@ -155,4 +161,14 @@ func CreatePermissions() {
 		permRepo.CreatePermission(&perm)
 	}
 
+}
+
+func SeedRoles(organizationId uuid.UUID) {
+	roleRepo := repository.NewRoleRepository()
+	fmt.Println("Startting roles seeding")
+	roles := []string{"USER", "ADMIN", "OPERATOR"}
+	for _, roleName := range roles {
+		// Use FirstOrCreate to avoid duplication
+		roleRepo.CreateRole(&models.RoleModel{Name: roleName, OrganizationId: &organizationId})
+	}
 }

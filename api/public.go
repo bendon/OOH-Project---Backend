@@ -11,6 +11,7 @@ import (
 
 func PublicRoutes(app fiber.Router) {
 	app.Post("/auth/login", services.Login)
+	app.Post("/auth/register", services.Register)
 	app.Get("/health", services.HealthCheck)
 
 	//google verify Oauth2

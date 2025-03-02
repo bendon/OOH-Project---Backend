@@ -101,6 +101,7 @@ func NewOrganizationStaff(c *fiber.Ctx) error {
 	}
 
 	password, _ := utils.GeneratePassword(8)
+	country := strings.ToUpper(payload.Country)
 
 	newStaff := &models.UserModel{
 		FirstName:  payload.FirstName,
@@ -108,8 +109,8 @@ func NewOrganizationStaff(c *fiber.Ctx) error {
 		LastName:   payload.LastName,
 		Email:      strings.ToLower(payload.Email),
 		Gender:     payload.Gender,
-		Phone:      payload.Phone,
-		Country:    strings.ToUpper(payload.Country),
+		Phone:      &payload.Phone,
+		Country:    &country,
 		Password:   utils.HashPassword([]byte(password)),
 	}
 

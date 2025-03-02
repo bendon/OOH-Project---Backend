@@ -13,8 +13,8 @@ type UserModel struct {
 	MiddleName string    `gorm:"column:middle_name" json:"middleName"`
 	LastName   string    `gorm:"column:last_name" json:"lastName"`
 	Email      string    `gorm:"column:email;unique;not null" json:"email"`
-	Phone      int       `gorm:"column:phone;unique;not null" json:"phone"`
-	Country    string    `gorm:"column:country;null" json:"country"`
+	Phone      *int      `gorm:"column:phone;null" json:"phone"`
+	Country    *string   `gorm:"column:country;null" json:"country"`
 	Gender     int       `gorm:"type:int;column:gender;not null" json:"gender"`
 	Verified   bool      `gorm:"type:boolean;default:false;column:verified" json:"verified"`
 	IsChange   *bool     `gorm:"type:boolean;column:is_change;null" json:"isChange,omitempty"`

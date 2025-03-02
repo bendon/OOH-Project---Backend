@@ -5,8 +5,6 @@ import (
 	"log"
 	"strings"
 
-	"gorm.io/gorm"
-
 	"bbscout/config/database"
 	"bbscout/models"
 )
@@ -33,8 +31,6 @@ func InitializeMigrations() {
 	if errMigrationTables != nil {
 		log.Fatalf("failed to migrate tables: %v", errMigrationTables)
 	}
-
-	seedRoles(db)
 
 	createOrganizationUserSummaryQuery := `
 	CREATE OR REPLACE VIEW organization_user_summary AS SELECT 
@@ -342,13 +338,4 @@ func InitializeMigrations() {
 
 	fmt.Println("Finished migration tables")
 
-}
-
-func seedRoles(db *gorm.DB) {
-	fmt.Println("Startting roles seeding")
-	roles := []string{"USER", "ADMIN", "OPERATOR"}
-	for _, roleName := range roles {
-		// Use FirstOrCreate to avoid duplication
-		db.FirstOrCreate(&models.RoleModel{}, models.RoleModel{Name: roleName})
-	}
 }

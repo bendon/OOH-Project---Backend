@@ -1,12 +1,13 @@
 package repository
 
 import (
-	"bbscout/config/database"
-	"bbscout/models"
 	"errors"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+
+	"bbscout/config/database"
+	"bbscout/models"
 )
 
 type OrganizationRepository interface {
@@ -16,6 +17,7 @@ type OrganizationRepository interface {
 	GetOperationOrganization() (*models.OrganizationModel, error)
 	DeleteOrganization(id uuid.UUID) error
 	GetOrganizationDetailsById(id uuid.UUID) (*models.OrganizationModel, error)
+	FindOrganizationLatest() (*models.OrganizationModel, error)
 }
 type organizationRepositoryImpl struct {
 	db *gorm.DB
@@ -78,6 +80,18 @@ func (r *organizationRepositoryImpl) GetOperationOrganization() (*models.Organiz
 func (r *organizationRepositoryImpl) GetOrganizationDetailsById(id uuid.UUID) (*models.OrganizationModel, error) {
 	var organization models.OrganizationModel
 	err := r.db.Preload("Admin").First(&organization, id).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &organization, nil
+}
+
+func (r *organizationRepositoryImpl) FindOrganizationLatest() (*models.OrganizationModel, error) {
+	var organization models.OrganizationModel
+	err := r.db.Last(&organization).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
