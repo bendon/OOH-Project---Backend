@@ -310,7 +310,7 @@ func AuthGoogleVerify(c *fiber.Ctx) error {
 	}
 
 	// fmt.Println("Payload:", payload)
-
+	userAccRepo := repository.NewUserAccountRepository()
 	// // Convert payload to JSON
 	userInfo := &types.UserInfo{
 		Sub:           payload.Claims["sub"].(string),
@@ -328,7 +328,147 @@ func AuthGoogleVerify(c *fiber.Ctx) error {
 	user, err := userRepo.GetUserByEmail(userInfo.Email)
 
 	if err != nil || user == nil {
-		return utils.WriteError(c, fiber.StatusUnauthorized, "unauthorized. invalid credentials")
+		password, _ := utils.GeneratePassword(8)
+		// create a new user
+		newUser := &models.UserModel{
+			FirstName:  userInfo.Name,
+			LastName:   userInfo.GivenName,
+			Email:      userInfo.Email,
+			MiddleName: userInfo.FamilyName,
+			Password:   utils.HashPassword([]byte(password)),
+			Phone:      nil,
+			Gender:     1,
+			Verified:   userInfo.EmailVerified,
+		}
+		// save the user to the database
+		createdUser, err := userRepo.CreateUser(newUser)
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusInternalServerError, "Error creating user")
+		}
+
+		// create a new userserAccRepo := repository.NewUserAccountRepository()
+		roleRepo := repository.NewRoleRepository()
+		userAccPermRepo := repository.NewUserAccountPermissionRepository()
+		orgUserRepo := repository.NewOrganizationUserRepository()
+		organizationRepo := repository.NewOrganizationRepository()
+		organization, err := organizationRepo.FindOrganizationLatest()
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusInternalServerError, "Error getting organization")
+		}
+		if organization == nil {
+			return utils.WriteError(c, fiber.StatusInternalServerError, "Error getting organization")
+		}
+
+		role, err := roleRepo.GetRoleByNameAndOrganizationId("USER", organization.ID)
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusInternalServerError, "Error getting role")
+		}
+		if role == nil {
+			return utils.WriteError(c, fiber.StatusInternalServerError, "Error getting role")
+		}
+
+		// create organization user
+		newOrgStaff := &models.OrganizationUserModel{
+			OrganizationId: organization.ID,
+			UserId:         createdUser.ID,
+			CreatedById:    nil,
+		}
+		orgUser, err := orgUserRepo.CreateOrganizationUser(newOrgStaff)
+		if err != nil || orgUser == nil {
+			return utils.WriteError(c, fiber.StatusInternalServerError, "Failed to create organization user")
+		}
+
+		// create user account
+		accountRepo := repository.NewUserAccountRepository()
+
+		userAccout := &models.UserAccountModel{
+			UserId:         createdUser.ID,
+			OrganizationId: &organization.ID,
+			Active:         true,
+		}
+		createdAccount, err := accountRepo.CreateUserAccount(userAccout)
+		if err != nil || createdAccount == nil {
+			return utils.WriteError(c, fiber.StatusInternalServerError, "Failed to create user account")
+		}
+
+		account, _accErr := userAccRepo.GetUserAccountByUserIdAndId(createdUser.ID, createdAccount.ID)
+		if _accErr != nil {
+			return utils.WriteError(c, fiber.StatusBadRequest, "User Account has either been locked or deactivated")
+		}
+		if account == nil {
+			return utils.WriteError(c, fiber.StatusBadRequest, "User Account has either been locked or deactivated")
+		}
+
+		// create user role
+		roleUserRepo := repository.NewUserRoleRepository()
+		userRole := &models.UserRoleModel{
+			UserId:         createdUser.ID,
+			OrganizationId: organization.ID,
+			RoleId:         role.ID,
+		}
+		createdRoleUser, err := roleUserRepo.CreateUserRole(userRole)
+		if err != nil || createdRoleUser == nil {
+			return utils.WriteError(c, fiber.StatusInternalServerError, "Failed to create user role")
+		}
+
+		perms, errPerm := userAccPermRepo.GetPermissionsByUserIdAndAccountId(createdUser.ID, account.ID)
+
+		if errPerm != nil {
+			return utils.WriteError(c, fiber.StatusInternalServerError, "Unable to fetch permissions")
+		}
+
+		// Extract permission names into a slice of strings
+		permissionNames := make([]string, len(perms))
+		for i, perm := range perms {
+			permissionNames[i] = perm.Name // Assuming PermissionModel has a Name field
+		}
+
+		// create new token account
+		expirationTime := jwt.NewNumericDate(time.Now().Add(6 * time.Hour))
+
+		tokenCodesl := utils.HashPassword([]byte("token"))
+
+		claims := &middleware.AccountClaims{
+			OwnerID:     createdUser.ID,
+			Username:    createdUser.Email,
+			Accessing:   account.ID,
+			Accessor:    account.OrganizationId,
+			CodeSl:      tokenCodesl,
+			Permissions: permissionNames,
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: expirationTime,
+				NotBefore: jwt.NewNumericDate(time.Now()),
+			},
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, err := token.SignedString(middleware.JwtKey)
+
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusInternalServerError, "unauthorized. server error")
+		}
+
+		response := middleware.TokenResponse{
+			User:         *createdUser,
+			Account:      account,
+			AccessToken:  tokenString,
+			RefreshToken: *GetRefreshToken(*claims),
+			Permissions:  &permissionNames,
+		}
+
+		email := types.EmailPayload{
+			Name:         createdUser.FirstName + " " + createdUser.LastName,
+			MailTo:       createdUser.Email,
+			Subject:      "Account Creation On " + organization.Name,
+			Body:         template.HTML("<p>Thank you for joining " + organization.Name + ".</p><p>Your account has been created successfully.</p><p>Should you need any assistance or have questions, our support team is always ready to help. You can reach out to us at any time, and we'll ensure you receive the support you need.</p>"),
+			TemplateFile: "registration.html",
+		}
+
+		// send email to the user
+		go emails.SendEmail(email)
+
+		return c.Status(fiber.StatusOK).JSON(response)
+
 	}
 
 	expirationTime := jwt.NewNumericDate(time.Now().Add(6 * time.Hour))

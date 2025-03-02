@@ -179,6 +179,11 @@ func GetUserUploadReportsMonthly(c *fiber.Ctx) error {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "error extracting billboard monthly report")
 	}
 
+	if reports == nil {
+		return utils.WriteError(c, fiber.StatusNotFound, "no report found")
+
+	}
+
 	return c.Status(fiber.StatusOK).JSON(reports)
 
 }

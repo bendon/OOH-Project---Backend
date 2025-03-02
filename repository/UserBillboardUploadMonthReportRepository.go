@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
@@ -39,6 +41,10 @@ func (r *userBillboardUploadMonthReportRepositoryImpl) GetUserBillboardUploadMon
 	var report models.UserBillboardUploadMonthReport
 	err := r.db.Where("organization_id = ? AND user_id = ? AND upload_year = ? AND upload_month = ?", organizationId, userID, year, month).First(&report).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+
+		}
 		return nil, err
 	}
 	return &report, nil
