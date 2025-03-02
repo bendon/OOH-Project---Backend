@@ -130,7 +130,8 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 					Extract target gender as target_gender (female,male,general)
 					Extract socials on the image as campaign_socials object as key and value e.g facebook,instagram,twitter,twitter or x ,linkedIn, github, WhatsApp etc as object string else empty null.
 					Extract other details as other_details array object as key and value e.g [{key: price,value:100,currency: dollars }] etc as array string else empty array.
-					Identify if the contains a billboard or signage as object_type as string else empty null.
+					Identify object in the image as either a billboard or signage as object_type as string else empty null.
+					billboard_type: as either "Static Billboard", "Digital Billboard", "Banner Ads", "Wallscapes", "Mobile Billboards","Lamp Posts","Interactive Billboards" or null.
 					Format the output as a JSON object with the specified fields.`
 
 	// Prepare the request payload
