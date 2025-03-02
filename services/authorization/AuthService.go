@@ -331,10 +331,10 @@ func AuthGoogleVerify(c *fiber.Ctx) error {
 		password, _ := utils.GeneratePassword(8)
 		// create a new user
 		newUser := &models.UserModel{
-			FirstName:  userInfo.Name,
-			LastName:   userInfo.GivenName,
+			FirstName:  userInfo.GivenName,
+			LastName:   userInfo.FamilyName,
 			Email:      userInfo.Email,
-			MiddleName: userInfo.FamilyName,
+			MiddleName: "",
 			Password:   utils.HashPassword([]byte(password)),
 			Phone:      nil,
 			Gender:     1,
