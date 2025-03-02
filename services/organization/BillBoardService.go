@@ -33,6 +33,7 @@ func CreateBillBoard(c *fiber.Ctx) error {
 	if err := validate.Struct(payload); err != nil {
 		return utils.WriteError(c, fiber.StatusBadRequest, err.Error())
 	}
+
 	billboardRepo := repository.NewBillBoardRepository()
 	fileRepo := repository.NewFileRepository()
 
@@ -203,6 +204,8 @@ func CreateBillboardCampaign(c *fiber.Ctx) error {
 		return utils.WriteError(c, fiber.StatusBadRequest, err.Error())
 	}
 
+	return c.Status(fiber.StatusOK).JSON(payload)
+
 	// check if the billboard id has active campaign
 	billboardCampRepo := repository.NewBillboardCampaignRepository()
 	active, err := billboardCampRepo.FindBillboardCampaignByOrganizationIdAndBillboardIdAndActive(user.Accessor, payload.BillboardId, true)
@@ -246,7 +249,7 @@ func CreateBillboardCampaign(c *fiber.Ctx) error {
 
 	campaign := &models.BillboardCampaignModel{
 		CampaignBrand:       payload.CampaignBrand,
-		Others:              payload.Others,
+		Others:              payload.OtherDetails,
 		OrganizationId:      user.Accessor,
 		BillboardId:         payload.BillboardId,
 		StartDate:           startDate,
@@ -261,6 +264,12 @@ func CreateBillboardCampaign(c *fiber.Ctx) error {
 		Phone:               payload.Phone,
 		ImageId:             payload.ImageId,
 		Active:              true,
+		TargetAudience:      payload.TargetAudience,
+		TargetAge:           payload.TargetAge,
+		TargetGender:        payload.TargetGender,
+		CampaignSocials:     payload.CampaignSocials,
+		Products:            payload.Products,
+		SiteUrl:             payload.SiteUrl,
 	}
 
 	createdCampaign, err := billboardCampRepo.CreateBillboardCampaign(campaign)
@@ -375,6 +384,11 @@ func UpdateBillboardCampaign(c *fiber.Ctx) error {
 	campaign.ImageId = payload.ImageId
 	campaign.CampaignBrand = payload.CampaignBrand
 	campaign.Others = payload.Others
+	campaign.TargetAge = payload.TargetAge
+	campaign.TargetGender = payload.TargetGender
+	campaign.Products = payload.Products
+	campaign.SiteUrl = payload.SiteUrl
+	campaign.TargetAudience = payload.TargetAudience
 	updated, err := billboardCampRepo.UpdateBillboardCampaign(campaign)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
@@ -472,7 +486,7 @@ func MyBillBoardById(c *fiber.Ctx) error {
 		return utils.WriteError(c, fiber.StatusBadRequest, "error fetching the billboard")
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(board)
+	return c.Status(fiber.StatusOK).JSON(board)
 }
 
 func SendEmail(c *fiber.Ctx) error {

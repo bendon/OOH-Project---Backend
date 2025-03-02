@@ -1,6 +1,12 @@
 package types
 
-import "github.com/google/uuid"
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"fmt"
+
+	"github.com/google/uuid"
+)
 
 type CreateBillboardRequest struct {
 	Description     string    `json:"description"`
@@ -34,4 +40,61 @@ type UpdateBillboardRequest struct {
 
 type BillboardTypeRequest struct {
 	Name string `json:"name" validate:"required"`
+}
+
+type JSONB map[string]interface{}
+
+// Marshal JSON before saving to DB
+func (j JSONB) Value() (driver.Value, error) {
+	if j == nil {
+		return "{}", nil
+	}
+	return json.Marshal(j)
+}
+
+// Unmarshal JSON when retrieving from DB
+func (j *JSONB) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("failed to unmarshal JSONB value: %v", value)
+	}
+	return json.Unmarshal(bytes, &j)
+}
+
+type StringArrayJSONB []string
+
+// Marshal JSON before saving to DB
+func (s StringArrayJSONB) Value() (driver.Value, error) {
+	if s == nil {
+		return "[]", nil
+	}
+	return json.Marshal(s)
+}
+
+// Unmarshal JSON when retrieving from DB
+func (s *StringArrayJSONB) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("failed to unmarshal JSONB string array: %v", value)
+	}
+	return json.Unmarshal(bytes, s)
+}
+
+type Int64ArrayJSONB []int64
+
+// Marshal JSON before saving to DB
+func (s Int64ArrayJSONB) Value() (driver.Value, error) {
+	if s == nil {
+		return "[]", nil
+	}
+	return json.Marshal(s)
+}
+
+// Unmarshal JSON when retrieving from DB
+func (s *Int64ArrayJSONB) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("failed to unmarshal JSONB int64 array: %v", value)
+	}
+	return json.Unmarshal(bytes, s)
 }
