@@ -157,6 +157,8 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 
 	// Extract response text
 	if len(geminiResp.Candidates) == 0 || len(geminiResp.Candidates[0].Content.Parts) == 0 {
+		//log the response
+		fmt.Println(string(body))
 		return utils.WriteError(c, fiber.StatusBadGateway, "No valid content received from Gemini API")
 	}
 
