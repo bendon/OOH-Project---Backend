@@ -174,7 +174,25 @@ func GetUserUploadReportsMonthly(c *fiber.Ctx) error {
 	month, _ := strconv.Atoi(c.Query("month", strconv.Itoa(int(currentMonth))))
 	yearn, _ := strconv.Atoi(c.Query("year", strconv.Itoa(year)))
 
-	reports, err := userUploadMonthlyRepo.GetUserBillboardUploadMonthReportByUser(user.Accessor, user.OwnerID, yearn, month)
+	reports, err := userUploadMonthlyRepo.GetUserBillboardUploadMonthReportByUserMonthyly(user.Accessor, user.OwnerID, yearn, month)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "error extracting billboard monthly report")
+	}
+
+	return c.Status(fiber.StatusOK).JSON(reports)
+
+}
+
+func GetUserUploadReportsYearly(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+
+	userUploadMonthlyRepo := repository.NewUserBillboardUploadMonthReportRepository()
+
+	now := time.Now()
+	year, _ := now.ISOWeek()
+	yearn, _ := strconv.Atoi(c.Query("year", strconv.Itoa(year)))
+
+	reports, err := userUploadMonthlyRepo.GetUserBillboardUploadMonthReportByUserYearly(user.Accessor, user.OwnerID, yearn)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "error extracting billboard monthly report")
 	}
