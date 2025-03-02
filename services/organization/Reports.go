@@ -83,17 +83,28 @@ func BillboardWeeklyReports(c *fiber.Ctx) error {
 
 func BillboardMonthlyReports(c *fiber.Ctx) error {
 	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	month := c.Query("month", "")
+	billboardMonthlyReportRepo := repository.NewBillboardUploadMonthlyReportRepository()
 
 	now := time.Now()
 	currentMonth := now.Month()
 	year, _ := now.ISOWeek()
-
-	month, _ := strconv.Atoi(c.Query("month", strconv.Itoa(int(currentMonth))))
 	yearn, _ := strconv.Atoi(c.Query("year", strconv.Itoa(year)))
 
-	billboardMonthlyReportRepo := repository.NewBillboardUploadMonthlyReportRepository()
+	if month == "" {
 
-	report, err := billboardMonthlyReportRepo.GetBillboardUploadMonthlyReport(user.Accessor, yearn, month)
+		reports, err := billboardMonthlyReportRepo.GetBillboardUploadMonthlyReportByYear(user.Accessor, yearn)
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusInternalServerError, "error extracting billboard monthly report")
+		}
+
+		return c.Status(fiber.StatusOK).JSON(reports)
+
+	}
+
+	monthn, _ := strconv.Atoi(c.Query("month", strconv.Itoa(int(currentMonth))))
+
+	report, err := billboardMonthlyReportRepo.GetBillboardUploadMonthlyReport(user.Accessor, yearn, monthn)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "error extracting billboard monthly report")
 	}

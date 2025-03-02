@@ -63,14 +63,15 @@ type CampaignDetails struct {
 		Width  float64 `json:"width"`
 		Units  string  `json:"units"`
 	} `json:"billboard_measurements"`
-	TargetAudience     string      `json:"target_audience"`
-	AdditionalNotes    string      `json:"additional_notes"`
-	PercentageAccuracy float64     `json:"percentage_accuracy"`
-	SiteUrl            []string    `json:"site_url"`
-	TargetAge          string      `json:"target_age"`
-	TargetGender       string      `json:"target_gender"`
-	CampaignSocials    interface{} `json:"campaign_socials"`
-	OtherDetailts      interface{} `json:"other_details"`
+	TargetAudience      string      `json:"target_audience"`
+	AdditionalNotes     string      `json:"additional_notes"`
+	PercentageAccuracy  float64     `json:"percentage_accuracy"`
+	SiteUrl             []string    `json:"site_url"`
+	TargetAge           string      `json:"target_age"`
+	TargetGender        string      `json:"target_gender"`
+	CampaignSocials     interface{} `json:"campaign_socials"`
+	OtherDetailts       interface{} `json:"other_details"`
+	DetectionConfidence float64     `json:"detection_confidence"`
 }
 
 func GetFileDataExtraction(c *fiber.Ctx) error {
@@ -114,7 +115,7 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 					Extract target age as target_age either (children, youth,adults,general).
 					Extract target gender as target_gender (female,male,general)
 					Extract socials on the image as campaign_socials object as key and value e.g facebook,instagram,twitter,twitter or x ,linkedIn, github, WhatsApp etc as array string else empty array.
-					Extract other details as other_details array object as key and value e.g [{key: price,value:100,currency: dollars }],etc as array string else empty array.
+					Extract other details as other_details array object as key and value e.g [{key: price,value:100,currency: dollars }] etc as array string else empty array.
 					Format the output as a JSON object with the specified fields.`
 
 	// Prepare the request payload
