@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
 	"bbscout/middleware"
 	"bbscout/repository"
@@ -162,8 +163,20 @@ func GetUserUploadReportsWeekly(c *fiber.Ctx) error {
 	weekn, _ := strconv.Atoi(c.Query("week", strconv.Itoa(week)))
 	month, _ := strconv.Atoi(c.Query("month", strconv.Itoa(int(currentMonth))))
 	yearn, _ := strconv.Atoi(c.Query("year", strconv.Itoa(year)))
+	var userId uuid.UUID
 
-	report, err := userUploadWeeklyRepo.GetUserBillboardUploadsReportWeekByUser(user.Accessor, user.OwnerID, yearn, month, weekn)
+	if c.Query("userId") != "" {
+		id, err := uuid.Parse(c.Query("userId"))
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusBadRequest, "invalid user id")
+		}
+		userId = id
+	} else {
+		userId = user.OwnerID
+
+	}
+
+	report, err := userUploadWeeklyRepo.GetUserBillboardUploadsReportWeekByUser(user.Accessor, userId, yearn, month, weekn)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "error extracting billboard weekly report")
 	}
@@ -183,7 +196,20 @@ func GetUserUploadReportsMonthly(c *fiber.Ctx) error {
 	month, _ := strconv.Atoi(c.Query("month", strconv.Itoa(int(currentMonth))))
 	yearn, _ := strconv.Atoi(c.Query("year", strconv.Itoa(year)))
 
-	reports, err := userUploadMonthlyRepo.GetUserBillboardUploadMonthReportByUserMonthyly(user.Accessor, user.OwnerID, yearn, month)
+	var userId uuid.UUID
+
+	if c.Query("userId") != "" {
+		id, err := uuid.Parse(c.Query("userId"))
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusBadRequest, "invalid user id")
+		}
+		userId = id
+	} else {
+		userId = user.OwnerID
+
+	}
+
+	reports, err := userUploadMonthlyRepo.GetUserBillboardUploadMonthReportByUserMonthyly(user.Accessor, userId, yearn, month)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "error extracting billboard monthly report")
 	}
@@ -206,7 +232,20 @@ func GetUserUploadReportsYearly(c *fiber.Ctx) error {
 	year, _ := now.ISOWeek()
 	yearn, _ := strconv.Atoi(c.Query("year", strconv.Itoa(year)))
 
-	reports, err := userUploadMonthlyRepo.GetUserBillboardUploadMonthReportByUserYearly(user.Accessor, user.OwnerID, yearn)
+	var userId uuid.UUID
+
+	if c.Query("userId") != "" {
+		id, err := uuid.Parse(c.Query("userId"))
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusBadRequest, "invalid user id")
+		}
+		userId = id
+	} else {
+		userId = user.OwnerID
+
+	}
+
+	reports, err := userUploadMonthlyRepo.GetUserBillboardUploadMonthReportByUserYearly(user.Accessor, userId, yearn)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "error extracting billboard monthly report")
 	}
