@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -76,9 +78,20 @@ type CampaignDetails struct {
 
 func GetFileDataExtraction(c *fiber.Ctx) error {
 	apiKey := os.Getenv("GEMINI_API_KEY")
+
 	file, err := c.FormFile("file")
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusBadGateway, "Failed to get file")
+	}
+	ext := filepath.Ext(file.Filename) // Get extension (.png, .jpg, etc.)
+	mimeType := mime.TypeByExtension(ext)
+
+	// If MIME type is missing, try detecting from the extension
+	if mimeType == "" {
+		mimeType = file.Header.Get("Content-Type")
+		if mimeType == "" {
+			mimeType = "application/octet-stream" // Default if unknown
+		}
 	}
 
 	// Open file
