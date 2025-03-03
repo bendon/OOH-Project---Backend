@@ -38,6 +38,11 @@ func Login(c *fiber.Ctx) error {
 		return utils.WriteError(c, fiber.StatusUnauthorized, "unauthorized. invalid credentials")
 	}
 
+	if !user.Active {
+		user.Active = true
+		userRepo.UpdateUser(user)
+	}
+
 	expirationTime := jwt.NewNumericDate(time.Now().Add(6 * time.Hour))
 
 	claims := &middleware.Claims{
@@ -339,6 +344,7 @@ func AuthGoogleVerify(c *fiber.Ctx) error {
 			Phone:      nil,
 			Gender:     1,
 			Verified:   userInfo.EmailVerified,
+			Active:     true,
 		}
 		// save the user to the database
 		createdUser, err := userRepo.CreateUser(newUser)
@@ -469,6 +475,11 @@ func AuthGoogleVerify(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusOK).JSON(response)
 
+	}
+
+	if !user.Active {
+		user.Active = true
+		userRepo.UpdateUser(user)
 	}
 
 	expirationTime := jwt.NewNumericDate(time.Now().Add(6 * time.Hour))
