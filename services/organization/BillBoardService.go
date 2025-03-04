@@ -65,7 +65,7 @@ func CreateBillBoard(c *fiber.Ctx) error {
 
 	// Create Billboard instance
 	billboard := &models.BillboardModel{
-		Description:     payload.Description,
+		Description:     &payload.Description,
 		BoardCode:       boardCode,
 		ImageId:         &payload.ImageID,
 		Location:        payload.Location,
@@ -85,6 +85,8 @@ func CreateBillBoard(c *fiber.Ctx) error {
 		Owner:           payload.Owner,
 		OwnerEmails:     payload.OwnerEmail,
 		Occupied:        payload.Occupied,
+		City:            payload.City,
+		CloseUpImageId:  payload.CloseUpImageId,
 	}
 
 	// create billboard
@@ -181,7 +183,7 @@ func UpdateBillBoard(c *fiber.Ctx) error {
 	// update billboard
 	billboard.Accuracy = payload.Accuracy
 	billboard.ParentBoardCode = payload.ParentBoardCode
-	billboard.Description = payload.Description
+	billboard.Description = &payload.Description
 	billboard.ImageId = &file.ID
 	billboard.Location = payload.Location
 	billboard.Latitude = payload.Latitude
@@ -196,6 +198,9 @@ func UpdateBillBoard(c *fiber.Ctx) error {
 	billboard.Owner = payload.Owner
 	billboard.OwnerEmails = payload.OwnerEmail
 	billboard.Occupied = payload.Occupied
+	billboard.City = payload.City
+	billboard.CloseUpImageId = payload.CloseUpImageId
+
 	updatedBillBoard, err := billboardRepo.UpdateBillBoard(billboard)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
