@@ -81,6 +81,10 @@ func CreateBillBoard(c *fiber.Ctx) error {
 		CreatedById:     user.OwnerID,
 		OrganizationId:  user.Accessor,
 		ObjectType:      payload.ObjectType,
+		OwnerContacts:   payload.OwnerContacts,
+		Owner:           payload.Owner,
+		OwnerEmails:     payload.OwnerEmail,
+		Occupied:        payload.Occupied,
 	}
 
 	// create billboard
@@ -188,6 +192,10 @@ func UpdateBillBoard(c *fiber.Ctx) error {
 	billboard.Type = payload.Type
 	billboard.Price = &payload.Price
 	billboard.ObjectType = payload.ObjectType
+	billboard.OwnerContacts = payload.OwnerContacts
+	billboard.Owner = payload.Owner
+	billboard.OwnerEmails = payload.OwnerEmail
+	billboard.Occupied = payload.Occupied
 	updatedBillBoard, err := billboardRepo.UpdateBillBoard(billboard)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
@@ -461,11 +469,17 @@ func MyBillBoardsUploads(c *fiber.Ctx) error {
 	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
 	billboardSummaryRepo := repository.NewBillBoardSummaryRepository()
 
+	userId := user.OwnerID
+	if c.Query("userId", "") != "" {
+		userId = uuid.MustParse(c.Query("userId"))
+
+	}
 	// get staff uploads
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	pageSize, _ := strconv.Atoi(c.Query("size", "20"))
 	search := c.Query("search", "")
-	data, totalCount, err := billboardSummaryRepo.GetStaffBillBoardsSummary(user.Accessor, user.OwnerID, page, pageSize, search)
+
+	data, totalCount, err := billboardSummaryRepo.GetStaffBillBoardsSummary(user.Accessor, userId, page, pageSize, search)
 	if err != nil || data == nil {
 		return utils.WriteError(c, fiber.StatusBadRequest, "error extracting user list")
 	}
