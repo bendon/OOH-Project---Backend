@@ -40,6 +40,7 @@ type BillboardSummaryView struct {
 	Illumination    *string                        `gorm:"type:varchar(255);column:illumination;null" json:"illumination"`
 	Angle           *string                        `gorm:"type:varchar(255);column:angle;null" json:"angle"`
 	Structure       *string                        `gorm:"type:varchar(255);column:structure;null" json:"structure"`
+	City            *string                        `gorm:"type:varchar(255);column:city;null" json:"city"`
 }
 
 // TableName overrides the default table name for GORM
