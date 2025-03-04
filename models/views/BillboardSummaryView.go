@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 
 	"bbscout/models"
+	"bbscout/types"
 )
 
 type BillboardSummaryView struct {
@@ -28,6 +29,17 @@ type BillboardSummaryView struct {
 	Campaign        *models.BillboardCampaignModel `gorm:"foreignKey:CampaignId; references:ID" json:"campaign,omitempty"`
 	CreatedAt       int64                          `gorm:"column:created_at" json:"createdAt"`
 	UpdatedAt       int64                          `gorm:"column:updated_at" json:"updatedAt"`
+	Occupied        bool                           `gorm:"type:boolean;column:occupied;not null" json:"occupied"`
+	Owner           *string                        `gorm:"type:varchar(255);column:owner;null" json:"owner"`
+	OwnerContact    *types.Int64ArrayJSONB         `gorm:"type:json;column:owner_contact;null" json:"ownerContact"`
+	OwnerEmail      *types.StringArrayJSONB        `gorm:"type:json;column:owner_email;null" json:"ownerEmail"`
+	CloseupImageId  *uuid.UUID                     `gorm:"type:char(36);column:closeup_image_id;null" json:"closeupImageId"`
+	CloseupImage    *models.FileModel              `gorm:"foreignKey:CloseupImageId;references:ID" json:"closeupImage,omitempty"`
+	Material        *string                        `gorm:"type:varchar(255);column:material;null" json:"material"`
+	Visibility      *string                        `gorm:"type:varchar(255);column:visibility;null" json:"visibility"`
+	Illumination    *string                        `gorm:"type:varchar(255);column:illumination;null" json:"illumination"`
+	Angle           *string                        `gorm:"type:varchar(255);column:angle;null" json:"angle"`
+	Structure       *string                        `gorm:"type:varchar(255);column:structure;null" json:"structure"`
 }
 
 // TableName overrides the default table name for GORM
