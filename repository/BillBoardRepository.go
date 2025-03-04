@@ -91,7 +91,7 @@ func (r *billBoardRepositoryImpl) GetBillBoardsByOrganizationId(organizationId u
 func (r *billBoardRepositoryImpl) GetBillBoardsByOrganizationIdPageable(organizationId uuid.UUID, page int, size int, search string) ([]models.BillboardModel, int64, error) {
 	var billboards []models.BillboardModel
 	var count int64
-	err := r.db.Preload("Image").Where("organization_id = ? AND title LIKE ?", organizationId, "%"+search+"%").Offset((page - 1) * size).Limit(size).Find(&billboards).Count(&count).Error
+	err := r.db.Preload("Image").Where("organization_id = ? AND board_code LIKE ?", organizationId, "%"+search+"%").Offset((page - 1) * size).Limit(size).Find(&billboards).Count(&count).Error
 	if err != nil {
 		return nil, 0, err
 	}
