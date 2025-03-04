@@ -43,6 +43,7 @@ func SecuredRoutes(r fiber.Router) {
 	i.Put("/update/billboard/:id", organization.UpdateBillBoard)
 	i.Get("/my/billboardds/uploads", organization.MyBillBoardsUploads)
 	i.Get("/my/billboards/:billboardId", organization.MyBillBoardById)
+	i.Get("/billboards-daily-filter", organization.GetBillboardDailyFilter)
 
 	// billboard campaigns
 	i.Post("/billboard/campaign", organization.CreateBillboardCampaign)

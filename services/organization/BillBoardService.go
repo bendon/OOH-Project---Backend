@@ -493,6 +493,45 @@ func MyBillBoardsUploads(c *fiber.Ctx) error {
 
 }
 
+func GetBillboardDailyFilter(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	billboardSummaryRepo := repository.NewBillBoardSummaryRepository()
+
+	// Define time format
+	layout := "2006-01-02 15:04:05"
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	pageSize, _ := strconv.Atoi(c.Query("size", "20"))
+	search := c.Query("code", "")
+	//getstart and end date from query other pick todays date
+	now := time.Now()
+	startDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Format("2006-01-02 15:04:05")
+	endDate := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 999999999, now.Location()).Format("2006-01-02 15:04:05")
+
+	if c.Query("startDate", "") != "" {
+		startDate = c.Query("startDate") + " 00:00:00"
+
+	}
+	if c.Query("endDate", "") != "" {
+		endDate = c.Query("endDate") + " 23:59:59"
+	}
+
+	startTime, _ := time.Parse(layout, startDate)
+	endTime, _ := time.Parse(layout, endDate)
+
+	// convert them to unix
+	startUnix := startTime.Unix()
+	endUnix := endTime.Unix()
+
+	data, totalCount, err := billboardSummaryRepo.GetBillboardDailyFilterPageable(user.Accessor, startUnix, endUnix, page, pageSize, search)
+
+	if err != nil || data == nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "error extracting user list")
+	}
+	response := utils.NewPaginationResponse(data, totalCount, page, pageSize)
+	return c.Status(fiber.StatusOK).JSON(response)
+
+}
+
 func MyBillBoardById(c *fiber.Ctx) error {
 	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
 	billboardSummaryRepo := repository.NewBillBoardSummaryRepository()

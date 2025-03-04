@@ -13,6 +13,7 @@ import (
 type BillboardSummaryRepository interface {
 	GetStaffBillBoardsSummary(organizationId uuid.UUID, createdById uuid.UUID, page int, size int, search string) ([]models.BillboardSummaryView, int64, error)
 	GetStaffBillBoardsSummaryById(id uuid.UUID, createdById uuid.UUID) (*models.BillboardSummaryView, error)
+	GetBillboardDailyFilterPageable(organizationId uuid.UUID, startDate int64, endDate int64, page int, size int, search string) ([]models.BillboardSummaryView, int64, error)
 }
 
 type billboardSummaryRepositoryImpl struct {
@@ -50,4 +51,14 @@ func (r *billboardSummaryRepositoryImpl) GetStaffBillBoardsSummaryById(id uuid.U
 		return nil, err
 	}
 	return &billboard, nil
+}
+
+func (r *billboardSummaryRepositoryImpl) GetBillboardDailyFilterPageable(organizationId uuid.UUID, startDate int64, endDate int64, page int, size int, search string) ([]models.BillboardSummaryView, int64, error) {
+	var billboards []models.BillboardSummaryView
+	var count int64
+	err := r.db.Preload("Staff").Preload("Image").Preload("Campaign").Where("organization_id = ? AND created_at >= ? AND created_at <= ? AND board_code LIKE ?", organizationId, startDate, endDate, "%"+search+"%").Offset((page - 1) * size).Limit(size).Find(&billboards).Count(&count).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return billboards, count, nil
 }
