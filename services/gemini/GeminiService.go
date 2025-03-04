@@ -76,6 +76,7 @@ type CampaignDetails struct {
 	DetectionConfidence float64     `json:"detection_confidence"`
 	ObjectType          *string     `json:"object_type"`
 	BillboardType       *string     `json:"billboard_type"`
+	Owner               interface{} `json:"owner"`
 }
 
 func GetFileDataExtraction(c *fiber.Ctx) error {
@@ -133,6 +134,7 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 					Extract other details as other_details array object as key and value e.g [{key: price,value:100,currency: dollars }] etc as array string else empty array.
 					Identify object in the image as either a billboard or signage as object_type as string else empty null.
 					billboard_type: as either "Static Billboard", "Digital Billboard", "Banner Ads", "Wallscapes", "Mobile Billboards","Lamp Posts","Interactive Billboards" or null.
+					owner: the owner of the structure not advert. get the owner_name, owner_phone as array of integer, owner_email array of string, owner_address, owner_website as object string else empty null. 
 					Format the output as a JSON object with the specified fields.`
 
 	// Prepare the request payload
