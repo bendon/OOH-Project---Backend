@@ -57,8 +57,8 @@ type CampaignDetails struct {
 	CampaignDescription string `json:"campaign_description"`
 	ContactInformation  struct {
 		Phone []*int    `json:"phone"`
-		Email []*string `json:"email"`
-	} `json:"contact_information"`
+		Email []*string `json:"campaign_email"`
+	} `json:"campaign_contact_information"`
 	Location              *string `json:"location"`
 	BillboardMeasurements struct {
 		Height float64 `json:"height"`
@@ -68,7 +68,7 @@ type CampaignDetails struct {
 	TargetAudience      string      `json:"target_audience"`
 	AdditionalNotes     string      `json:"additional_notes"`
 	PercentageAccuracy  float64     `json:"percentage_accuracy"`
-	SiteUrl             []string    `json:"site_url"`
+	SiteUrl             []string    `json:"campaign_site_url"`
 	TargetAge           string      `json:"target_age"`
 	TargetGender        string      `json:"target_gender"`
 	CampaignSocials     interface{} `json:"campaign_socials"`
@@ -116,8 +116,8 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 	instructions := `Analyze the provided image of a billboard and extract the following information as a JSON object:
 					campaign_brand: The brand or company advertising on the billboard.
 					campaign_description: A brief description of the advertisement or promotion.
-					contact_information: * phone: The contact phone number as array integer default to empty array [].
-					email: The contact email address as array string default to empty array [].
+					campaign_contact_information: * phone: The contact phone number for the campain as array integer default to empty array [].
+					campaign_email: The email address for the campain as array string default to empty array [].
 					location: The location of the billboard, if discernible from the image or context. If not visible, set to null.
 					billboard_measurements:
 					height: The estimated height of the billboard in meters. default 0.
@@ -127,7 +127,7 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 					Additional Notes as additional_notes:
 					If the exact height and width cannot be determined, provide estimated values based on visual analysis and perspective.
 					Include any observations or insights about the image, such as the type of billboard (digital, static), its surroundings, and the overall message of the advertisement. add also the percentage_accuracy for extraction as float. 
-					Identify url on the image as site_url in array string if not place empty array.
+					campaign_site_url : Identify url on the image as site_url in array string if not place empty array.
 					Extract target age as target_age either (children, youth,adults,general).
 					Extract target gender as target_gender (female,male,general)
 					Extract socials on the image as campaign_socials object as key and value e.g facebook,instagram,twitter,twitter or x ,linkedIn, github, WhatsApp etc as object string else empty null.
