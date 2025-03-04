@@ -35,6 +35,11 @@ type BillboardModel struct {
 	Image           *FileModel              `gorm:"foreignKey:ImageId; references:ID" json:"image,omitempty"`
 	Active          bool                    `gorm:"type:boolean;column:active;default:true;not null" json:"active"`
 	Occupied        bool                    `gorm:"type:boolean;column:occupied;default:false;not null" json:"occupied"`
+	Structure       *string                 `gorm:"type:varchar(255);column:structure; null" json:"structure"`
+	Material        *string                 `gorm:"type:varchar(255);column:material; null" json:"material"`
+	Angle           *string                 `gorm:"type:varchar(255);column:angel; null" json:"angle"`
+	Visibility      *string                 `gorm:"type:varchar(255);column:visibility; null" json:"visibility"`
+	Illumination    *string                 `gorm:"type:varchar(255);column:illumination;null" json:"illumination"`
 	CreatedAt       int64                   `gorm:"column:created_at" json:"createdAt"`
 	UpdatedAt       int64                   `gorm:"column:updated_at" json:"updatedAt"`
 	DeletedAt       gorm.DeletedAt          `gorm:"index" json:"-"`

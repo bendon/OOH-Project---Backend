@@ -28,6 +28,11 @@ type CreateBillboardRequest struct {
 	OwnerEmail      *StringArrayJSONB `json:"ownerEmail"`
 	City            *string           `json:"city"`
 	CloseUpImageId  *uuid.UUID        `json:"closeUpImageId"`
+	Structure       *string           `json:"structure"`
+	Material        *string           `json:"material"`
+	Angle           *string           `json:"angle"`
+	Visibility      *string           `json:"visibility"`
+	Illumination    *string           `json:"illumination"`
 }
 
 type UpdateBillboardRequest struct {
@@ -50,6 +55,11 @@ type UpdateBillboardRequest struct {
 	Occupied        bool              `json:"occupied" default:"false"`
 	City            *string           `json:"city"`
 	CloseUpImageId  *uuid.UUID        `json:"closeUpImageId"`
+	Structure       *string           `json:"structure"`
+	Material        *string           `json:"material"`
+	Angle           *string           `json:"angle"`
+	Visibility      *string           `json:"visibility"`
+	Illumination    *string           `json:"illumination"`
 }
 
 type BillboardTypeRequest struct {

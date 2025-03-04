@@ -87,6 +87,11 @@ func CreateBillBoard(c *fiber.Ctx) error {
 		Occupied:        payload.Occupied,
 		City:            payload.City,
 		CloseUpImageId:  payload.CloseUpImageId,
+		Structure:       payload.Structure,
+		Material:        payload.Material,
+		Angle:           payload.Angle,
+		Visibility:      payload.Visibility,
+		Illumination:    payload.Illumination,
 	}
 
 	// create billboard
@@ -200,6 +205,11 @@ func UpdateBillBoard(c *fiber.Ctx) error {
 	billboard.Occupied = payload.Occupied
 	billboard.City = payload.City
 	billboard.CloseUpImageId = payload.CloseUpImageId
+	billboard.Structure = payload.Structure
+	billboard.Material = payload.Material
+	billboard.Angle = payload.Angle
+	billboard.Visibility = payload.Visibility
+	billboard.Illumination = payload.Illumination
 
 	updatedBillBoard, err := billboardRepo.UpdateBillBoard(billboard)
 	if err != nil {
