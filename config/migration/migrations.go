@@ -149,6 +149,7 @@ func InitializeMigrations() {
         bb.angel,
         bb.structure,
 		bb.city,
+		bb.object_type,
 		bb.active AS billboard_active,
 		bc.id AS campaign_id,
 		COALESCE(bc.active, false) AS campaign_active,
