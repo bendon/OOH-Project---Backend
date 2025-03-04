@@ -56,9 +56,9 @@ type CampaignDetails struct {
 	CampaignBrand       string `json:"campaign_brand"`
 	CampaignDescription string `json:"campaign_description"`
 	ContactInformation  struct {
-		Phone []*int    `json:"phone"`
+		Phone []*int    `json:"campaign_phone"`
 		Email []*string `json:"campaign_email"`
-	} `json:"campaign_contact_information"`
+	} `json:"campaign_contacts"`
 	Location              *string `json:"location"`
 	BillboardMeasurements struct {
 		Height float64 `json:"height"`
@@ -116,7 +116,7 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 	instructions := `Analyze the provided image of a billboard and extract the following information as a JSON object:
 					campaign_brand: The brand or company advertising on the billboard.
 					campaign_description: A brief description of the advertisement or promotion.
-					campaign_contact_information: * phone: The contact phone number for the campain as array integer default to empty array [].
+					campaign_contacts: * campaign_phone: The advert contact info as array integer default to empty array [].
 					campaign_email: The email address for the campain as array string default to empty array [].
 					location: The location of the billboard, if discernible from the image or context. If not visible, set to null.
 					billboard_measurements:
