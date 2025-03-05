@@ -42,6 +42,7 @@ type BillboardSummaryView struct {
 	Structure       *string                        `gorm:"type:varchar(255);column:structure;null" json:"structure"`
 	City            *string                        `gorm:"type:varchar(255);column:city;null" json:"city"`
 	ObjectType      *string                        `gorm:"type:varchar(255);column:object_type;null" json:"objectType"`
+	ParentBoardCode *string                        `gorm:"type:varchar(1000);column:parent_board_code;null" json:"parentBoardCode"`
 }
 
 // TableName overrides the default table name for GORM

@@ -148,6 +148,7 @@ func InitializeMigrations() {
         bb.illumination,
         bb.angel,
         bb.structure,
+		bb.parent_board_code,
 		bb.city,
 		bb.object_type,
 		bb.active AS billboard_active,
