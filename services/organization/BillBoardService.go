@@ -38,7 +38,7 @@ func CreateBillBoard(c *fiber.Ctx) error {
 	fileRepo := repository.NewFileRepository()
 
 	// check if the image Id exists
-	file, err := fileRepo.GetFileById(payload.ImageID)
+	file, err := fileRepo.GetFileById(payload.CloseUpImageId)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
 	}
@@ -67,7 +67,7 @@ func CreateBillBoard(c *fiber.Ctx) error {
 	billboard := &models.BillboardModel{
 		Description:     &payload.Description,
 		BoardCode:       boardCode,
-		ImageId:         &payload.ImageID,
+		ImageId:         payload.ImageID,
 		Location:        payload.Location,
 		Latitude:        payload.Latitude,
 		Longitude:       payload.Longitude,
@@ -86,7 +86,7 @@ func CreateBillBoard(c *fiber.Ctx) error {
 		OwnerEmails:     payload.OwnerEmail,
 		Occupied:        payload.Occupied,
 		City:            payload.City,
-		CloseUpImageId:  payload.CloseUpImageId,
+		CloseUpImageId:  &payload.CloseUpImageId,
 		Structure:       payload.Structure,
 		Material:        payload.Material,
 		Angle:           payload.Angle,
@@ -175,7 +175,7 @@ func UpdateBillBoard(c *fiber.Ctx) error {
 	}
 
 	// check if the image Id exists
-	file, err := fileRepo.GetFileById(payload.ImageID)
+	file, err := fileRepo.GetFileById(payload.CloseUpImageId)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
 	}
@@ -204,7 +204,7 @@ func UpdateBillBoard(c *fiber.Ctx) error {
 	billboard.OwnerEmails = payload.OwnerEmail
 	billboard.Occupied = payload.Occupied
 	billboard.City = payload.City
-	billboard.CloseUpImageId = payload.CloseUpImageId
+	billboard.CloseUpImageId = &payload.CloseUpImageId
 	billboard.Structure = payload.Structure
 	billboard.Material = payload.Material
 	billboard.Angle = payload.Angle
