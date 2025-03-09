@@ -34,6 +34,7 @@ func (r *filesSummaryRepositoryImpl) GetFilesSummaryPageable(organizationId uuid
 
 	offset := (page - 1) * size
 	if err := r.db.Preload("Billboard").Where("organization_id = ? AND created_at BETWEEN ? AND ?", organizationId, startDate, endDate).
+		Order("created_at DESC").
 		Limit(size).
 		Offset(offset).
 		Find(&files).Error; err != nil {
