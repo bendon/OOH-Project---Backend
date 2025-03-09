@@ -349,6 +349,26 @@ func InitializeMigrations() {
 		log.Fatalf("failed to create view: %v", err)
 	}
 
+	createFilesSummaryQuery := `
+	CREATE OR REPLACE VIEW files_summary AS
+	SELECT 
+    fs.id AS file_id,
+    fs.file_name ,
+    fs.file_extension,
+    fs.file_type,
+    fs.file_url,
+    fs.organization_id,
+    fs.file_size,
+    fs.created_at,
+    fs.updated_at,
+    bb.id AS billboard_id
+    FROM files fs 
+    LEFT JOIN bill_boards bb ON fs.id = bb.closeup_image_id OR fs.id = bb.image_id;`
+
+	if err := db.Exec(createFilesSummaryQuery).Error; err != nil {
+		log.Fatalf("failed to create view: %v", err)
+	}
+
 	fmt.Println("Finished migration tables")
 
 }
