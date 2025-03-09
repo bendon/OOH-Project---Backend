@@ -138,12 +138,12 @@ func PostSwtichAccounts(c *fiber.Ctx) error {
 	tokenCodesl := utils.HashPassword([]byte("token"))
 
 	claims := &middleware.AccountClaims{
-		OwnerID:     profile.ID,
-		Username:    profile.Email,
-		Accessing:   account.ID,
-		Accessor:    account.OrganizationId,
-		CodeSl:      tokenCodesl,
-		Permissions: permissionNames,
+		OwnerID:   profile.ID,
+		Username:  profile.Email,
+		Accessing: account.ID,
+		Accessor:  account.OrganizationId,
+		CodeSl:    tokenCodesl,
+		// Permissions: permissionNames,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: expirationTime,
 			NotBefore: jwt.NewNumericDate(time.Now()),
@@ -162,7 +162,7 @@ func PostSwtichAccounts(c *fiber.Ctx) error {
 		Account:      account,
 		AccessToken:  tokenString,
 		RefreshToken: *GetRefreshToken(*claims),
-		Permissions:  &permissionNames,
+		// Permissions:  &permissionNames,
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)
@@ -209,12 +209,12 @@ func RefreshToken(c *fiber.Ctx) error {
 	tokenCodesl := utils.HashPassword([]byte("token"))
 
 	claims := &middleware.AccountClaims{
-		OwnerID:     profile.ID,
-		Username:    profile.Email,
-		Accessing:   account.ID,
-		Accessor:    account.OrganizationId,
-		CodeSl:      tokenCodesl,
-		Permissions: permissionNames,
+		OwnerID:   profile.ID,
+		Username:  profile.Email,
+		Accessing: account.ID,
+		Accessor:  account.OrganizationId,
+		CodeSl:    tokenCodesl,
+		// Permissions: permissionNames,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: expirationTime,
 			NotBefore: jwt.NewNumericDate(time.Now()),
@@ -233,7 +233,7 @@ func RefreshToken(c *fiber.Ctx) error {
 		Account:      account,
 		AccessToken:  tokenString,
 		RefreshToken: *GetRefreshToken(*claims),
-		Permissions:  &permissionNames,
+		// Permissions:  &permissionNames,
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)
@@ -435,12 +435,12 @@ func AuthGoogleVerify(c *fiber.Ctx) error {
 		tokenCodesl := utils.HashPassword([]byte("token"))
 
 		claims := &middleware.AccountClaims{
-			OwnerID:     createdUser.ID,
-			Username:    createdUser.Email,
-			Accessing:   account.ID,
-			Accessor:    account.OrganizationId,
-			CodeSl:      tokenCodesl,
-			Permissions: permissionNames,
+			OwnerID:   createdUser.ID,
+			Username:  createdUser.Email,
+			Accessing: account.ID,
+			Accessor:  account.OrganizationId,
+			CodeSl:    tokenCodesl,
+			// Permissions: permissionNames,
 			RegisteredClaims: jwt.RegisteredClaims{
 				ExpiresAt: expirationTime,
 				NotBefore: jwt.NewNumericDate(time.Now()),
@@ -459,7 +459,7 @@ func AuthGoogleVerify(c *fiber.Ctx) error {
 			Account:      account,
 			AccessToken:  tokenString,
 			RefreshToken: *GetRefreshToken(*claims),
-			Permissions:  &permissionNames,
+			// Permissions:  &permissionNames,
 		}
 
 		email := types.EmailPayload{
@@ -638,12 +638,12 @@ func Register(c *fiber.Ctx) error {
 	tokenCodesl := utils.HashPassword([]byte("token"))
 
 	claims := &middleware.AccountClaims{
-		OwnerID:     createdUser.ID,
-		Username:    createdUser.Email,
-		Accessing:   account.ID,
-		Accessor:    account.OrganizationId,
-		CodeSl:      tokenCodesl,
-		Permissions: permissionNames,
+		OwnerID:   createdUser.ID,
+		Username:  createdUser.Email,
+		Accessing: account.ID,
+		Accessor:  account.OrganizationId,
+		CodeSl:    tokenCodesl,
+		// Permissions: permissionNames,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: expirationTime,
 			NotBefore: jwt.NewNumericDate(time.Now()),
@@ -662,7 +662,7 @@ func Register(c *fiber.Ctx) error {
 		Account:      account,
 		AccessToken:  tokenString,
 		RefreshToken: *GetRefreshToken(*claims),
-		Permissions:  &permissionNames,
+		// Permissions:  &permissionNames,
 	}
 
 	email := types.EmailPayload{
