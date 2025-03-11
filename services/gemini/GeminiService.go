@@ -82,6 +82,7 @@ type CampaignDetails struct {
 	Illumination        *string     `json:"illumination"`
 	Visibility          *string     `json:"visibility"`
 	Angle               *string     `json:"angle"`
+	Type                *bool       `json:"type"`
 }
 
 func GetFileDataExtraction(c *fiber.Ctx) error {
@@ -93,6 +94,8 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 	}
 	ext := filepath.Ext(file.Filename) // Get extension (.png, .jpg, etc.)
 	mimeType := mime.TypeByExtension(ext)
+
+	ObjectType := c.FormValue("type")
 
 	// If MIME type is missing, try detecting from the extension
 	if mimeType == "" {
@@ -118,7 +121,7 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 	// Convert image to Base64
 	encodedImage := base64.StdEncoding.EncodeToString(fileData)
 
-	instructions := `Analyze the provided image of a billboard and extract the following information as a JSON object:
+	instructions := fmt.Sprintf(`Analyze the provided image of a billboard and extract the following information as a JSON object:
 					campaign_brand: The brand or company advertising on the billboard.
 					campaign_description: A brief description of the advertisement or promotion.
 					campaign_contacts: * campaign_phone: The advert contact info as array integer default to empty array [].
@@ -145,8 +148,8 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 					visibility:  as either  Average, Excellent,Good,Poor.
 					Angle: as either double decker, Head On,Left,Right or null.
 					owner: the owner of the structure not advert. get the owner_name, owner_phone as array of integer, owner_email array of string, owner_address, owner_website as object string else empty null. 
-
-					Format the output as a JSON object with the specified fields.`
+					type: as either true or false if the object type is %s.
+					Format the output as a JSON object with the specified fields.`, ObjectType)
 
 	// Prepare the request payload
 	requestBody := GeminiRequest{

@@ -55,17 +55,6 @@ func InitializerOperationAccount() {
 		return
 	}
 
-	role, roleErr := roleRepo.GetRoleByName("OPERATOR")
-	if roleErr != nil {
-		fmt.Println("Failed to create admin account")
-		return
-	}
-
-	if role == nil {
-		fmt.Println("Role not found")
-		return
-	}
-
 	//establish operation organization
 	organization := &models.OrganizationModel{}
 	organization.AdminId = user.ID
@@ -80,6 +69,17 @@ func InitializerOperationAccount() {
 	}
 
 	SeedRoles(org.ID)
+
+	role, roleErr := roleRepo.GetRoleByName("OPERATOR")
+	if roleErr != nil {
+		fmt.Println("Failed to create admin account")
+		return
+	}
+
+	if role == nil {
+		fmt.Println("Role not found")
+		return
+	}
 
 	// user role
 	userRole := &models.UserRoleModel{}
