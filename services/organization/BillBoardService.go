@@ -561,7 +561,7 @@ func RelatedBillBoardByCode(c *fiber.Ctx) error {
 	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
 	billboardSummaryRepo := repository.NewBillBoardSummaryRepository()
 
-	code := c.Query("billboardCode", "")
+	code := c.Params("billboardCode")
 	if code == "" {
 		return utils.WriteError(c, fiber.StatusBadRequest, "billboard code is required")
 	}
