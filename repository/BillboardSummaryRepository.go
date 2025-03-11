@@ -33,7 +33,7 @@ func NewBillBoardSummaryRepository() BillboardSummaryRepository {
 func (r *billboardSummaryRepositoryImpl) GetStaffBillBoardsSummary(organizationId uuid.UUID, createdById uuid.UUID, page int, size int, search string) ([]models.BillboardSummaryView, int64, error) {
 	var billboards []models.BillboardSummaryView
 	var count int64
-	err := r.db.Preload("Staff").Preload("Image").Preload("Campaign").Preload("CloseupImage").Where("organization_id = ? AND created_by_id = ? AND board_code LIKE ?", organizationId, createdById, "%"+search+"%").Offset((page - 1) * size).Limit(size).Find(&billboards).Count(&count).Error
+	err := r.db.Preload("Staff").Preload("Image").Preload("Campaign").Preload("CloseupImage").Where("organization_id = ? AND created_by_id = ? AND board_code LIKE ?", organizationId, createdById, "%"+search+"%").Order("created_at DESC").Offset((page - 1) * size).Limit(size).Find(&billboards).Count(&count).Error
 	if err != nil {
 		return nil, 0, err
 	}
