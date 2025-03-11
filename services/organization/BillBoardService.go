@@ -566,7 +566,7 @@ func RelatedBillBoardByCode(c *fiber.Ctx) error {
 		return utils.WriteError(c, fiber.StatusBadRequest, "billboard code is required")
 	}
 
-	parent, err := billboardSummaryRepo.GetBillBoardByCodeAndOrganizationId(user.Accessor, code)
+	parent, err := billboardSummaryRepo.GetBillBoardByCodeAndOrganizationIdParent(user.Accessor, code)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusBadRequest, "error fetching the billboard")
 
