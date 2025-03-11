@@ -56,6 +56,7 @@ func SecuredRoutes(r fiber.Router) {
 	i.Post("/create/billboard/types", organization.CreateBillboardTypes)
 	i.Delete("/delete/billboard/type/:typeId", organization.DeleteBillboardType)
 	i.Get("/list/billboard/types", organization.GetBillboardTypes)
+	i.Get("/realted/billboards/:billboardCode", organization.RelatedBillBoardByCode)
 
 	// send email
 	i.Post("/send/email", organization.SendEmail)

@@ -14,6 +14,8 @@ type BillboardSummaryRepository interface {
 	GetStaffBillBoardsSummary(organizationId uuid.UUID, createdById uuid.UUID, page int, size int, search string) ([]models.BillboardSummaryView, int64, error)
 	GetStaffBillBoardsSummaryById(id uuid.UUID, createdById uuid.UUID) (*models.BillboardSummaryView, error)
 	GetBillboardDailyFilterPageable(organizationId uuid.UUID, startDate int64, endDate int64, page int, size int, search string) ([]models.BillboardSummaryView, int64, error)
+	GetBillBoardByCodeAndOrganizationId(organizationId uuid.UUID, code string) ([]models.BillboardSummaryView, error)
+	GetBillBoardByCodeAndOrganizationIdParent(organizationId uuid.UUID, code string) (*models.BillboardSummaryView, error)
 }
 
 type billboardSummaryRepositoryImpl struct {
@@ -61,4 +63,25 @@ func (r *billboardSummaryRepositoryImpl) GetBillboardDailyFilterPageable(organiz
 		return nil, 0, err
 	}
 	return billboards, count, nil
+}
+
+func (r *billboardSummaryRepositoryImpl) GetBillBoardByCodeAndOrganizationId(organizationId uuid.UUID, code string) ([]models.BillboardSummaryView, error) {
+	var billboards []models.BillboardSummaryView
+	err := r.db.Preload("Staff").Preload("Image").Preload("Campaign").Preload("CloseupImage").Where("organization_id = ? AND parent_board_code = ?", organizationId, code).Find(&billboards).Error
+	if err != nil {
+		return nil, err
+	}
+	return billboards, nil
+}
+
+func (r *billboardSummaryRepositoryImpl) GetBillBoardByCodeAndOrganizationIdParent(organizationId uuid.UUID, code string) (*models.BillboardSummaryView, error) {
+	var billboard models.BillboardSummaryView
+	err := r.db.Preload("Staff").Preload("Image").Preload("Campaign").Preload("CloseupImage").Where("organization_id = ? AND board_code = ?", organizationId, code).First(&billboard).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &billboard, nil
 }

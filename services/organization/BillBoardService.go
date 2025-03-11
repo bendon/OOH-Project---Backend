@@ -557,6 +557,33 @@ func MyBillBoardById(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(board)
 }
 
+func RelatedBillBoardByCode(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+	billboardSummaryRepo := repository.NewBillBoardSummaryRepository()
+
+	code := c.Query("billboardCode", "")
+	if code == "" {
+		return utils.WriteError(c, fiber.StatusBadRequest, "billboard code is required")
+	}
+
+	parent, err := billboardSummaryRepo.GetBillBoardByCodeAndOrganizationId(user.Accessor, code)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "error fetching the billboard")
+
+	}
+
+	board, err := billboardSummaryRepo.GetBillBoardByCodeAndOrganizationId(user.Accessor, code)
+
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "error fetching the billboard")
+	}
+
+	// combine the parent and children: board as object and children as array
+	response := fiber.Map{"parent": parent, "children": board}
+	return c.Status(fiber.StatusOK).JSON(response)
+
+}
+
 func SendEmail(c *fiber.Ctx) error {
 
 	request := new(types.SendEmailRequest)
