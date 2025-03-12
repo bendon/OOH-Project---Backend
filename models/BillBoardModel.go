@@ -33,6 +33,7 @@ type BillboardModel struct {
 	ImageId         *uuid.UUID              `gorm:"type:char(36);column:image_id; null" json:"image_id"`
 	CloseUpImageId  *uuid.UUID              `gorm:"type:char(36);column:closeup_image_id; null" json:"closeUpImageId"`
 	Image           *FileModel              `gorm:"foreignKey:ImageId; references:ID" json:"image,omitempty"`
+	CloseUpImage    *FileModel              `gorm:"foreignKey:CloseUpImageId; references:ID" json:"closeUpImage,omitempty"`
 	Active          bool                    `gorm:"type:boolean;column:active;default:true;not null" json:"active"`
 	Occupied        bool                    `gorm:"type:boolean;column:occupied;default:false;not null" json:"occupied"`
 	Structure       *string                 `gorm:"type:varchar(255);column:structure; null" json:"structure"`

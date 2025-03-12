@@ -68,7 +68,7 @@ func (r *billBoardRepositoryImpl) DeleteBillBoard(id uuid.UUID) error {
 }
 func (r *billBoardRepositoryImpl) GetBillBoardByIdAndOrganizationId(id uuid.UUID, organizationId uuid.UUID) (*models.BillboardModel, error) {
 	var billboard models.BillboardModel
-	err := r.db.Preload("Image").Where("id = ? AND organization_id = ?", id, organizationId).First(&billboard).Error
+	err := r.db.Preload("Image").Preload("CloseUpImage").Where("id = ? AND organization_id = ?", id, organizationId).First(&billboard).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
