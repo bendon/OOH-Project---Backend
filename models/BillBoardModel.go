@@ -30,7 +30,7 @@ type BillboardModel struct {
 	ObjectType      *string                 `gorm:"type:varchar(255);column:object_type;null" json:"objectType"`
 	ParentBoardCode *string                 `gorm:"type:varchar(1000);column:parent_board_code;null" json:"parentBoardCode"`
 	Price           *float64                `gorm:"type:decimal(10,2);column:price; null; default:0" json:"price"`
-	ImageId         *uuid.UUID              `gorm:"type:char(36);column:image_id; null" json:"image_id"`
+	ImageId         *uuid.UUID              `gorm:"type:char(36);column:image_id; null" json:"imageId"`
 	CloseUpImageId  *uuid.UUID              `gorm:"type:char(36);column:closeup_image_id; null" json:"closeUpImageId"`
 	Image           *FileModel              `gorm:"foreignKey:ImageId; references:ID" json:"image,omitempty"`
 	CloseUpImage    *FileModel              `gorm:"foreignKey:CloseUpImageId; references:ID" json:"closeUpImage,omitempty"`
