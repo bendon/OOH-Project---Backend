@@ -83,6 +83,8 @@ type CampaignDetails struct {
 	Visibility          *string     `json:"visibility"`
 	Angle               *string     `json:"angle"`
 	Type                *bool       `json:"type"`
+	RunUp               *string     `json:"run_up"`
+	Environment         *string     `json:"environment"`
 }
 
 func GetFileDataExtraction(c *fiber.Ctx) error {
@@ -140,12 +142,14 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 					Extract target gender as target_gender (female,male,general)
 					Extract socials on the image as campaign_socials object as key and value e.g facebook,instagram,twitter,twitter or x ,linkedIn, github, WhatsApp etc as object string else empty null.
 					Extract other details as other_details array object as key and value e.g [{key: price,value:100,currency: dollars }] etc as array string else empty array.
+					environment: Identify the environment of the structure (cluttered, solus – prime/ premium)
 					Identify object in the image as either a billboard or signage as object_type as string else empty null.
 					billboard_type: as either "Static Billboard", "Digital Billboard", "Banner Ads", "Wallscapes", "Mobile Billboards","Lamp Posts","Interactive Billboards" or null.
-					structure : as either Bridge,digital, free standing, Gantry,hoarding,Hooding,Right,Sky, sky sign, wall wrap or null.
+					structure : for billboards as either Bridge,digital, free standing, Gantry,hoarding,Hooding,Right,Sky, sky sign, wall wrap).  for branding (free standing banners, fish tank, backlit signs, stickers). for signages (Name plate, Shop fascia, building fascia, 2D signage, 3D Signage, under canopy, back lit outdoor) or null.
 					material: as either backlit,digital,flex,LED,Vinyl,Sticker, Metal,Mesh or null.
 					illumization: as either front or  none.
 					visibility:  as either  Average, Excellent,Good,Poor.
+					run_up :  (>100, 90-100, 80-90, 70-80, 60-70, 50-60, 40-60, 30-40, 20-30, <20
 					Angle: as either double decker, Head On,Left,Right or null.
 					owner: the owner of the structure not advert. get the owner_name, owner_phone as array of integer, owner_email array of string, owner_address, owner_website as object string else empty null. 
 					type: as either true or false if the object type is %s.

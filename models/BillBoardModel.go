@@ -18,13 +18,13 @@ type BillboardModel struct {
 	OwnerContacts   *types.Int64ArrayJSONB  `gorm:"type:json;column:owner_contact;null" json:"ownerContacts"`
 	OwnerEmails     *types.StringArrayJSONB `gorm:"type:json;column:owner_email;null" json:"ownerEmails"`
 	Description     *string                 `gorm:"type:text;column:description;" json:"description"`
-	Location        string                  `gorm:"type:varchar(255);column:location;not null" json:"location"`
+	Location        *string                 `gorm:"type:varchar(255);column:location;null" json:"location"`
 	City            *string                 `gorm:"type:varchar(255);column:city;null" json:"city"`
 	Latitude        float64                 `gorm:"type:double;column:latitude;not null" json:"latitude"`
 	Longitude       float64                 `gorm:"type:double;column:longitude;not null" json:"longitude"`
-	Accuracy        float64                 `gorm:"type:double;column:accuracy;not null" json:"accuracy"`
-	Width           float64                 `gorm:"type:double;column:width;not null;default:0" json:"width"`
-	Height          float64                 `gorm:"type:double;column:height;not null;default:0" json:"height"`
+	Accuracy        *float64                `gorm:"type:double;column:accuracy;null; default:0" json:"accuracy"`
+	Width           *float64                `gorm:"type:double;column:width;not null;default:0" json:"width"`
+	Height          *float64                `gorm:"type:double;column:height;not null;default:0" json:"height"`
 	Unit            string                  `gorm:"type:enum('centimeters','meters','feet','inches');column:unit;not null;default:meters" json:"unit"`
 	Type            string                  `gorm:"type:varchar(255);column:type;not null" json:"type"` // "Static Billboard", "Digital Billboard", "Banner Ads", "Wallscapes", "Mobile Billboards","Lamp Posts","Interactive Billboards"
 	ObjectType      *string                 `gorm:"type:varchar(255);column:object_type;null" json:"objectType"`

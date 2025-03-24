@@ -68,13 +68,13 @@ func CreateBillBoard(c *fiber.Ctx) error {
 		Description:     &payload.Description,
 		BoardCode:       boardCode,
 		ImageId:         payload.ImageID,
-		Location:        payload.Location,
+		Location:        &payload.Location,
 		Latitude:        payload.Latitude,
 		Longitude:       payload.Longitude,
-		Accuracy:        payload.Accuracy,
+		Accuracy:        &payload.Accuracy,
 		ParentBoardCode: payload.ParentBoardCode,
-		Width:           payload.Width,
-		Height:          payload.Height,
+		Width:           &payload.Width,
+		Height:          &payload.Height,
 		Unit:            payload.Unit,
 		Type:            payload.Type,
 		Price:           &payload.Price,
@@ -188,16 +188,16 @@ func UpdateBillBoard(c *fiber.Ctx) error {
 	// update billboard
 	billboard.Accuracy = payload.Accuracy
 	billboard.ParentBoardCode = payload.ParentBoardCode
-	billboard.Description = &payload.Description
+	billboard.Description = payload.Description
 	billboard.ImageId = &file.ID
 	billboard.Location = payload.Location
-	billboard.Latitude = payload.Latitude
-	billboard.Longitude = payload.Longitude
+	billboard.Latitude = *payload.Latitude
+	billboard.Longitude = *payload.Longitude
 	billboard.Width = payload.Width
 	billboard.Height = payload.Height
 	billboard.Unit = payload.Unit
 	billboard.Type = payload.Type
-	billboard.Price = &payload.Price
+	billboard.Price = payload.Price
 	billboard.ObjectType = payload.ObjectType
 	billboard.OwnerContacts = payload.OwnerContacts
 	billboard.Owner = payload.Owner
