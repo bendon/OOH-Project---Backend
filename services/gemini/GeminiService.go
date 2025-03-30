@@ -97,7 +97,8 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 	ext := filepath.Ext(file.Filename) // Get extension (.png, .jpg, etc.)
 	mimeType := mime.TypeByExtension(ext)
 
-	ObjectType := c.FormValue("type")
+	ObjectType := c.FormValue("type", "billboard")
+	isMultiple := c.FormValue("multiple", "no")
 
 	// If MIME type is missing, try detecting from the extension
 	if mimeType == "" {
@@ -123,44 +124,45 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 	// Convert image to Base64
 	encodedImage := base64.StdEncoding.EncodeToString(fileData)
 
-	instructions := fmt.Sprintf(`Analyze the provided image of a billboard and extract the following information as a JSON object:
-					campaign_brand: The brand or company advertising on the billboard.
-					campaign_description: A brief description of the advertisement or promotion.
-					campaign_contacts: * campaign_phone: The advert contact info as array integer default to empty array [].
-					campaign_email: The email address for the campain as array string default to empty array [].
-					location: The location of the billboard, if discernible from the image or context. If not visible, set to null.
-					billboard_measurements:
-					height: The estimated height of the billboard in meters. default 0.
-					width: The estimated width of the billboard in meters. default  0.
-					units: "meters"
-					target_audience: A brief description of the likely target audience based on the ad content and billboard placement.
-					Additional Notes as additional_notes:
-					If the exact height and width cannot be determined, provide estimated values based on visual analysis and perspective.
-					Include any observations or insights about the image, such as the type of billboard (digital, static), its surroundings, and the overall message of the advertisement. add also the percentage_accuracy for extraction as float. 
-					campaign_site_url : Identify url on the image as site_url in array string if not place empty array.
-					Extract target age as target_age either (children, youth,adults,general).
-					Extract target gender as target_gender (female,male,general)
-					Extract socials on the image as campaign_socials object as key and value e.g facebook,instagram,twitter,twitter or x ,linkedIn, github, WhatsApp etc as object string else empty null.
-					Extract other details as other_details array object as key and value e.g [{key: price,value:100,currency: dollars }] etc as array string else empty array.
-					environment: Identify the environment of the structure (cluttered, solus – prime/ premium)
-					Identify object in the image as either a billboard or signage as object_type as string else empty null.
-					billboard_type: as either "Static Billboard", "Digital Billboard", "Banner Ads", "Wallscapes", "Mobile Billboards","Lamp Posts","Interactive Billboards" or null.
-					structure : for billboards as either Bridge,digital, free standing, Gantry,hoarding,Hooding,Right,Sky, sky sign, wall wrap).  for branding (free standing banners, fish tank, backlit signs, stickers). for signages (Name plate, Shop fascia, building fascia, 2D signage, 3D Signage, under canopy, back lit outdoor) or null.
-					material: as either backlit,digital,flex,LED,Vinyl,Sticker, Metal,Mesh or null.
-					illumization: as either front or  none.
-					visibility:  as either  Average, Excellent,Good,Poor.
-					run_up :  (>100, 90-100, 80-90, 70-80, 60-70, 50-60, 40-60, 30-40, 20-30, <20
-					Angle: as either double decker, Head On,Left,Right or null.
-					owner: the owner of the structure not advert. get the owner_name, owner_phone as array of integer, owner_email array of string, owner_address, owner_website as object string else empty null. 
-					type: as either true or false if the object type is %s.
-					Format the output as a JSON object with the specified fields.`, ObjectType)
+	analyzeStatement := `one of the billboards or signages that is focused in this image and output a JSON array. For the object includes the following fields:`
+	if isMultiple == "yes" {
+		analyzeStatement = ` each billboards or signages contained in this image as a separate object and output a JSON array. For each object includes the following fields:`
+	}
+
+	instructions2 := fmt.Sprintf(`
+    Analyze %s
+        campaign_brand: Company advertising
+        campaign_description: Brief ad description
+        campaign_contacts: {phone: [integers], email: [strings]}
+        campaign_site_url: [strings]
+        location: Location if visible, else null
+        billboard_measurements: {height: number, width: number, units: "meters"}
+        target_audience: Likely audience
+        target_age: "children", "youth", "adults", or "general"
+        target_gender: "female", "male", "general"
+        campaign_socials: {platform: handle} or null
+        other_details: [{key: string, value: any, currency: string}] or []
+        environment: "cluttered" or "solus"
+        object_type: "billboard" or "signage"
+        billboard_type: "Static Billboard", "Digital Billboard", etc.
+        structure: (for billboards: Bridge,digital, free standing, Gantry,hoarding,Hooding,Right,Sky, sky sign, wall wrap),(for branding: free standing banners, fish tank, backlit signs, stickers, etc.), (for signage: Name plate, Shop fascia, building fascia, 2D signage, 3D Signage, under canopy, back lit outdoor, etc.)
+        material: "backlit", "digital", "flex", "LED", etc.
+        illumination: "front" or "none"
+        visibility: "Average", "Excellent", "Good", "Poor"
+        run_up: ">100", "90-100", (>100, 90-100, 80-90, 70-80, 60-70, 50-60, 40-60, 30-40, 20-30, <20).
+        angle: "double decker", "Head On", "Left", "Right", or null
+        owner: {name, phone: [integers], email: [strings], address, website}
+        type: true if %s, false otherwise
+        percentage_accuracy: float
+        additional_notes: Observations about the billboard"
+    `, analyzeStatement, ObjectType)
 
 	// Prepare the request payload
 	requestBody := GeminiRequest{
 		Contents: []Content{
 			{
 				Parts: []Part{
-					{Text: instructions}, // User's instruction
+					{Text: instructions2}, // User's instruction
 					{InlineData: &Image{MimeType: mimeType, Data: encodedImage}}, // Image
 				},
 			},
@@ -201,23 +203,26 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
 
 	rawJSON := geminiResp.Candidates[0].Content.Parts[0].Text
 
-	// Remove Markdown code block (```json ... ```)
-	re := regexp.MustCompile("(?s)```json\\n(.*?)\\n```")
+	// Extract JSON from the response text (clean up markdown formatting)
+	re := regexp.MustCompile("```json\\s*([\\s\\S]*?)\\s*```")
 	matches := re.FindStringSubmatch(rawJSON)
 
 	var cleanedJSON string
 	if len(matches) > 1 {
 		cleanedJSON = matches[1] // Extract the JSON inside the Markdown block
 	} else {
-		cleanedJSON = strings.TrimSpace(rawJSON) // If no Markdown, use the raw text
+		// If no markdown code blocks, try to find the JSON directly
+		cleanedJSON = strings.TrimSpace(rawJSON)
 	}
 
-	// Unmarshal extracted JSON into CampaignDetails struct
-	var campaign CampaignDetails
-	if err := json.Unmarshal([]byte(cleanedJSON), &campaign); err != nil {
-		return utils.WriteError(c, fiber.StatusBadGateway, "Failed to parse extracted JSON")
+	// Unmarshal extracted JSON into array of CampaignDetails structs
+	var campaigns []CampaignDetails
+	if err := json.Unmarshal([]byte(cleanedJSON), &campaigns); err != nil {
+		// Log error details for debugging
+		fmt.Println("JSON parsing error:", err)
+		fmt.Println("Cleaned JSON:", cleanedJSON)
+		return utils.WriteError(c, fiber.StatusBadGateway, "Failed to parse extracted JSON array")
 	}
 
-	return c.Status(fiber.StatusOK).JSON(campaign)
-
+	return c.Status(fiber.StatusOK).JSON(campaigns)
 }
