@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"math"
 
 	"github.com/google/uuid"
 )
@@ -121,4 +122,32 @@ func (s *Int64ArrayJSONB) Scan(value interface{}) error {
 		return fmt.Errorf("failed to unmarshal JSONB int64 array: %v", value)
 	}
 	return json.Unmarshal(bytes, s)
+}
+
+type LocationRequest struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
+// calculateDistance calculates the distance between two points using the Haversine formula
+// Returns distance in meters
+func CalculateDistance(lat1, lon1, lat2, lon2 float64) float64 {
+	const earthRadius = 6371000 // Earth's radius in meters
+
+	// Convert degrees to radians
+	lat1Rad := lat1 * math.Pi / 180
+	lon1Rad := lon1 * math.Pi / 180
+	lat2Rad := lat2 * math.Pi / 180
+	lon2Rad := lon2 * math.Pi / 180
+
+	// Haversine formula
+	dLat := lat2Rad - lat1Rad
+	dLon := lon2Rad - lon1Rad
+	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
+		math.Cos(lat1Rad)*math.Cos(lat2Rad)*
+			math.Sin(dLon/2)*math.Sin(dLon/2)
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+	distance := earthRadius * c
+
+	return distance
 }

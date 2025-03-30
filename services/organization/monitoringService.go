@@ -6,6 +6,7 @@ import (
 	"bbscout/repository"
 	"bbscout/types"
 	"bbscout/utils"
+	"math"
 	"strconv"
 	"time"
 
@@ -21,13 +22,13 @@ func CreateMonitoringRecord(c *fiber.Ctx) error {
 		return utils.WriteError(c, fiber.StatusBadRequest, "Invalid request")
 	}
 
-	billboardRepo := repository.NewBillBoardRepository()
-	fileRepo := repository.NewFileRepository()
-
 	// validate the request
 	if err := validate.Struct(request); err != nil {
 		return utils.WriteError(c, fiber.StatusBadRequest, err.Error())
 	}
+
+	billboardRepo := repository.NewBillBoardRepository()
+	fileRepo := repository.NewFileRepository()
 
 	// check if the billboard id exists
 	if request.BillboardId != nil {
@@ -141,4 +142,50 @@ func GetMyMonitoringRecordByUser(c *fiber.Ctx) error {
 	response := utils.NewPaginationResponse(monitoring, total, page, size)
 	return c.Status(fiber.StatusOK).JSON(response)
 
+}
+
+func GetBillboardsNearUser(c *fiber.Ctx) error {
+
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+
+	request := new(types.LocationRequest)
+	if err := c.BodyParser(request); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, "Invalid request")
+	}
+
+	// validate the request
+	if err := validate.Struct(request); err != nil {
+		return utils.WriteError(c, fiber.StatusBadRequest, err.Error())
+	}
+
+	// Define the distance radius in meters
+	radiusInMeters := 50.0 // Adjust this value as needed
+
+	// Calculate latitude/longitude differences for the given radius at this specific location
+	// 1 degree of latitude is approximately 111,111 meters (this varies slightly with latitude)
+	latDiff := radiusInMeters / 111111
+
+	// 1 degree of longitude varies with latitude
+	// cos(latitude in radians) * 111,111 meters
+	lngDiff := radiusInMeters / (111111 * math.Cos(request.Latitude*math.Pi/180))
+
+	billboardRepo := repository.NewBillBoardRepository()
+
+	// Fetch billboards within the specified radius
+	billboards, err := billboardRepo.GetBillBoardBoundingBox(user.Accessing, request.Latitude-latDiff, request.Latitude+latDiff, request.Longitude-lngDiff, request.Longitude+lngDiff)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "Failed to get billboards")
+	}
+
+	var nearbyBillboards []models.BillboardModel
+
+	for _, billboard := range billboards {
+		// Calculate the Haversine distance between points
+		distance := types.CalculateDistance(request.Latitude, request.Longitude, billboard.Latitude, billboard.Longitude)
+		if distance <= radiusInMeters {
+			nearbyBillboards = append(nearbyBillboards, billboard)
+		}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(nearbyBillboards)
 }
