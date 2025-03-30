@@ -21,11 +21,23 @@ func CreateMonitoringRecord(c *fiber.Ctx) error {
 		return utils.WriteError(c, fiber.StatusBadRequest, "Invalid request")
 	}
 
+	billboardRepo := repository.NewBillBoardRepository()
 	fileRepo := repository.NewFileRepository()
 
 	// validate the request
 	if err := validate.Struct(request); err != nil {
 		return utils.WriteError(c, fiber.StatusBadRequest, err.Error())
+	}
+
+	// check if the billboard id exists
+	if request.BillboardId != nil {
+		billboard, err := billboardRepo.GetBillBoardByIdAndOrganizationId(*request.BillboardId, user.Accessor)
+		if err != nil {
+			return utils.WriteError(c, fiber.StatusInternalServerError, "server error")
+		}
+		if billboard == nil {
+			return utils.WriteError(c, fiber.StatusBadRequest, "billboard not found")
+		}
 	}
 
 	// check if long short image id exists
@@ -63,6 +75,7 @@ func CreateMonitoringRecord(c *fiber.Ctx) error {
 	monitoringRepo := repository.NewMonitoringRepository()
 
 	monitor := &models.MonitoringModel{
+		BillboardId:          request.BillboardId,
 		OrganizationId:       user.Accessor,
 		MonitoredById:        user.OwnerID,
 		Date:                 &date,

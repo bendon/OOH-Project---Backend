@@ -3,7 +3,7 @@ package types
 import "github.com/google/uuid"
 
 type CreateMonitoringRequest struct {
-	BillboardById        *uuid.UUID        `json:"billboardById"` // billboard id
+	BillboardId          *uuid.UUID        `json:"billboardId"` // billboard id
 	County               *string           `json:"county"`
 	Street               *string           `json:"street" `
 	Location             *string           `json:"location" `
