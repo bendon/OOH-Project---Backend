@@ -159,7 +159,7 @@ func GetBillboardsNearUser(c *fiber.Ctx) error {
 	}
 
 	// Define the distance radius in meters
-	radiusInMeters := 50.0 // Adjust this value as needed
+	radiusInMeters := 10.0 // Adjust this value as needed
 
 	// Calculate latitude/longitude differences for the given radius at this specific location
 	// 1 degree of latitude is approximately 111,111 meters (this varies slightly with latitude)
