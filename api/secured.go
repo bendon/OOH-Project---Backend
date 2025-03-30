@@ -78,5 +78,5 @@ func SecuredRoutes(r fiber.Router) {
 	i.Post("/monitoring/create", organization.CreateMonitoringRecord)
 	i.Get("/monitoring/list", organization.GetMonitoringRecords)
 	i.Get("/monitoring/my/list", organization.GetMyMonitoringRecordByUser)
-	i.Get("/monitoring/near/billboards", organization.GetBillboardsNearUser)
+	i.Get("/billboards/near/me", organization.GetBillboardsNearUser)
 }
