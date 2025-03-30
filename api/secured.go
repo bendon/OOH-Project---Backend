@@ -73,4 +73,9 @@ func SecuredRoutes(r fiber.Router) {
 	i.Get("/report/billboard/user/weekly", organization.GetUserUploadReportsWeekly)
 	i.Get("/report/billboard/user/monthly", organization.GetUserUploadReportsMonthly)
 	i.Get("/report/billboard/user/yearly", organization.GetUserUploadReportsYearly)
+
+	//monitoring
+	i.Post("/monitoring/create", organization.CreateMonitoringRecord)
+	i.Get("/monitoring/list", organization.GetMonitoringRecords)
+	i.Get("/monitoring/my/list", organization.GetMyMonitoringRecordByUser)
 }
