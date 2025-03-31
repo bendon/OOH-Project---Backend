@@ -46,7 +46,7 @@ type MonitoringModel struct {
 	User                 *UserModel              `gorm:"foreignKey:MonitoredById; references:ID" json:"user,omitempty"`
 	LongShortImage       *FileModel              `gorm:"foreignKey:LongShotImageId; references:ID" json:"longShotImage,omitempty"`
 	CloseUpImage         *FileModel              `gorm:"foreignKey:CloseUpImageId; references:ID" json:"closeUpImage,omitempty"`
-	Billboard            *BillboardModel         `gorm:"foreignKey:BillboardById; references:ID" json:"billboard,omitempty"`
+	Billboard            *BillboardModel         `gorm:"foreignKey:BillboardId; references:ID" json:"billboard,omitempty"`
 }
 
 func (MonitoringModel) TableName() string {
