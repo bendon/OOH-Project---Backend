@@ -111,7 +111,7 @@ func (r *billBoardRepositoryImpl) GetBillboardUploadsByOrganizationIdAndCreatedB
 
 func (r *billBoardRepositoryImpl) GetBillBoardBoundingBox(organizationId uuid.UUID, latitude float64, latitudeDef float64, longitude float64, longitudeDef float64) ([]models.BillboardModel, error) {
 	var billboards []models.BillboardModel
-	err := r.db.Preload("Image").Preload("CloseUpImage").Where("organization_id = ? AND latitude BETWEEN ? AND ? AND longitude BETWEEN ?", organizationId, latitude, latitudeDef, longitude, longitudeDef).Find(&billboards).Error
+	err := r.db.Preload("Image").Preload("CloseUpImage").Where("organization_id = ? AND latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?", organizationId, latitude, latitudeDef, longitude, longitudeDef).Find(&billboards).Error
 	if err != nil {
 		return nil, err
 	}
