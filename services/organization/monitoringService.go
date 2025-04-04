@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 func CreateMonitoringRecord(c *fiber.Ctx) error {
@@ -126,6 +127,18 @@ func GetMonitoringRecords(c *fiber.Ctx) error {
 
 	response := utils.NewPaginationResponse(monitoring, total, page, size)
 	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+func GetMonitoringRecordById(c *fiber.Ctx) error {
+
+	monitoringRepo := repository.NewMonitoringRepository()
+	monitoring, err := monitoringRepo.GetMonitoringById(uuid.MustParse(c.Params("id")))
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "Failed to get monitoring record")
+	}
+
+	return c.Status(fiber.StatusOK).JSON(monitoring)
+
 }
 func GetMyMonitoringRecordByUser(c *fiber.Ctx) error {
 	user := c.Locals("user").(middleware.AccountBranchClaimResponse)

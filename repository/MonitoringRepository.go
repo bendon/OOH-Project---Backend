@@ -15,6 +15,7 @@ type MonitoringRepository interface {
 	GetMonitoringByUser(organizationId uuid.UUID, userId uuid.UUID, page, size int) ([]*models.MonitoringModel, int64, error)
 	UpdateMonitoring(monitoring *models.MonitoringModel) (*models.MonitoringModel, error)
 	DeleteMonitoring(id uuid.UUID) error
+	GetMonitoringById(id uuid.UUID) (*models.MonitoringModel, error)
 }
 
 type monitoringRepositoryImpl struct {
@@ -90,4 +91,11 @@ func (m *monitoringRepositoryImpl) GetMonitoringByUser(organizationId uuid.UUID,
 		return nil, 0, err
 	}
 	return monitoring, totalCount, nil
+}
+func (m *monitoringRepositoryImpl) GetMonitoringById(id uuid.UUID) (*models.MonitoringModel, error) {
+	var monitoring models.MonitoringModel
+	if err := m.db.Preload("LongShortImage").Preload("CloseUpImage").Preload("User").Preload("Billboard").First(&monitoring, id).Error; err != nil {
+		return nil, err
+	}
+	return &monitoring, nil
 }
