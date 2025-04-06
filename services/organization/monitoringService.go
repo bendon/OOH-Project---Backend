@@ -104,6 +104,9 @@ func CreateMonitoringRecord(c *fiber.Ctx) error {
 		Latitude:             request.Latitude,
 		Longitude:            request.Longitude,
 		Accuracy:             request.Accuracy,
+		Type:                 request.Type,
+		Structure:            request.Structure,
+		Visibility:           request.Visibility,
 	}
 
 	// create monitoring record
