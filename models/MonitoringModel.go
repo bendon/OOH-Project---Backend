@@ -13,7 +13,7 @@ type MonitoringModel struct {
 	OrganizationId       uuid.UUID               `gorm:"type:char(36);column:organization_id;null" json:"organizationId"`
 	MonitoredById        uuid.UUID               `gorm:"type:char(36);column:monitored_by_id; null" json:"monitoredById"`
 	BillboardId          *uuid.UUID              `gorm:"type:char(36);column:billboard_id; null" json:"billboardId"`
-	Date                 *string                 `gorm:"type:varchar(1000);column:board_code; null" json:"boardCode"`
+	Date                 *string                 `gorm:"type:varchar(1000);column:board_code; null" json:"date"`
 	County               *string                 `gorm:"type:varchar(255);column:owner; null" json:"Owner"`
 	Street               *string                 `gorm:"type:varchar(255);column:street; null" json:"street"`
 	Location             *string                 `gorm:"type:varchar(255);column:location; null" json:"location"`
