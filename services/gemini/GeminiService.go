@@ -144,7 +144,7 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
         other_details: [{key: string, value: any, currency: string}] or []
         environment: "cluttered" or "solus"
         object_type: "billboard" or "signage"
-        billboard_type: "Static Billboard", "Digital Billboard", etc.
+        billboard_type: "Free Standing Billboard", "Free Standing Double Decker", "Wall Wrap", "Skysign", "Street Banner", "Bridge - Overpass", "Bridge - Footbridge", "Bridge - Railway", "Gantry", "Cantilever", "Free Standing Digital", "Wall Mounted Digital", "Wall Mounted INDOOR Digital LED", "Free Standing INDOOR Digital LED", "Wall Mounted INDOOR Digital LCD", "Free Standing Digital Indoor LCD", "Hanging INDOOR LCD", "Road Banner", "Wall Branding", "Bus Shelters", etc.
         structure: (for billboards: Bridge,digital, free standing, Gantry,hoarding,Hooding,Right,Sky, sky sign, wall wrap),(for branding: free standing banners, fish tank, backlit signs, stickers, etc.), (for signage: Name plate, Shop fascia, building fascia, 2D signage, 3D Signage, under canopy, back lit outdoor, etc.)
         material: "backlit", "digital", "flex", "LED", etc.
         illumination: "front" or "none"
