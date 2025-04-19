@@ -370,6 +370,84 @@ func InitializeMigrations() {
 		log.Fatalf("failed to create view: %v", err)
 	}
 
+	createUserMonthlyMonitoryQuery := `
+	CREATE OR REPLACE VIEW user_monthly_monitoring_stats AS
+		SELECT 
+			MONTH(FROM_UNIXTIME(created_at)) AS month_number,
+			MONTHNAME(FROM_UNIXTIME(created_at)) AS month_name,
+			YEAR(FROM_UNIXTIME(created_at)) AS year_number,
+			monitored_by_id AS user_id,
+			organization_id AS organization_id,
+			COUNT(*) AS total_monitors
+		FROM 
+			monitoring_strutcures
+		WHERE 
+			deleted_at IS NULL
+		GROUP BY 
+			month_number, month_name, year_number, user_id, organization_id
+		ORDER BY 
+			year_number, month_number;`
+
+	if err := db.Exec(createUserMonthlyMonitoryQuery).Error; err != nil {
+		log.Fatalf("failed to create view: %v", err)
+	}
+
+	createUserMonitoryQuery := `
+	CREATE OR REPLACE VIEW user_monitoring_stats AS
+		SELECT 
+			monitored_by_id AS user_id,
+			organization_id AS organization_id,
+			COUNT(*) AS total_monitors
+		FROM 
+			monitoring_strutcures
+		WHERE 
+			deleted_at IS NULL
+		GROUP BY 
+			user_id, organization_id;`
+
+	if err := db.Exec(createUserMonitoryQuery).Error; err != nil {
+		log.Fatalf("failed to create view: %v", err)
+	}
+
+	createUserMonthlyAuditQuery := `
+	CREATE OR REPLACE VIEW user_monthly_audit_stats AS
+		SELECT 
+			MONTH(FROM_UNIXTIME(created_at)) AS month_number,
+			MONTHNAME(FROM_UNIXTIME(created_at)) AS month_name,
+			YEAR(FROM_UNIXTIME(created_at)) AS year_number,
+			created_by_id AS user_id,
+			organization_id AS organization_id,
+			COUNT(*) AS total_billboards
+		FROM 
+			bill_boards
+		WHERE 
+			deleted_at IS NULL
+		GROUP BY 
+			month_number, month_name, year_number, user_id, organization_id
+		ORDER BY 
+			year_number, month_number;`
+
+	if err := db.Exec(createUserMonthlyAuditQuery).Error; err != nil {
+		log.Fatalf("failed to create view: %v", err)
+	}
+
+	createUserAuditQuery := `
+	CREATE OR REPLACE VIEW user_audit_report AS
+		SELECT 
+			created_by_id AS user_id,
+			organization_id AS organization_id,
+			COUNT(*) AS total_billboards
+		FROM 
+			bill_boards
+		WHERE 
+			deleted_at IS NULL
+		GROUP BY 
+			user_id, organization_id;`
+
+	if err := db.Exec(createUserAuditQuery).Error; err != nil {
+		log.Fatalf("failed to create view: %v", err)
+	}
+
 	fmt.Println("Finished migration tables")
 
 }

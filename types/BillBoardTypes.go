@@ -151,3 +151,14 @@ func CalculateDistance(lat1, lon1, lat2, lon2 float64) float64 {
 
 	return distance
 }
+
+type MonthlyAuditReport struct {
+	Month      int    `json:"month"`
+	MonthName  string `json:"monthName"`
+	TotalAudit int64  `json:"totalAudit"`
+}
+
+type AuditReportResponse struct {
+	Audit         interface{}          `json:"summary"`
+	MonthlyReport []MonthlyAuditReport `json:"monthlyReport"`
+}

@@ -1,6 +1,8 @@
 package types
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
 
 type CreateMonitoringRequest struct {
 	BillboardId          *uuid.UUID        `json:"billboardId"` // billboard id
@@ -30,4 +32,21 @@ type CreateMonitoringRequest struct {
 	LongShotImageId      *uuid.UUID        `json:"longShotImageId"`
 	Type                 *string           `json:"type"`
 	Environment          *string           `json:"environment"`
+}
+
+type MonthlyMonitorReport struct {
+	Month        int    `json:"month"`
+	MonthName    string `json:"monthName"`
+	TotalMonitor int64  `json:"totalMonitor"`
+}
+
+type UserReportResponse struct {
+	Year     int                    `json:"year"`
+	Monitors MonitorsReportResponse `json:"monitor"`
+	Audit    AuditReportResponse    `json:"audit"`
+}
+
+type MonitorsReportResponse struct {
+	Monitor       interface{}            `json:"summary"`
+	MonthlyReport []MonthlyMonitorReport `json:"monthlyReport"`
 }

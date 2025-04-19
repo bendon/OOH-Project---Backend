@@ -1,12 +1,11 @@
 package models
 
 import (
+	"bbscout/types"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-
-	"bbscout/types"
 )
 
 type BillboardModel struct {

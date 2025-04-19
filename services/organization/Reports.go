@@ -9,6 +9,7 @@ import (
 
 	"bbscout/middleware"
 	"bbscout/repository"
+	"bbscout/types"
 	"bbscout/utils"
 )
 
@@ -251,5 +252,54 @@ func GetUserUploadReportsYearly(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(reports)
+
+}
+
+func GetUserGeneralStatistics(c *fiber.Ctx) error {
+	user := c.Locals("user").(middleware.AccountBranchClaimResponse)
+
+	year, _ := strconv.Atoi(c.Query("year", strconv.Itoa(time.Now().Year())))
+
+	userMonthlyMOnitorRepo := repository.NewUserMonthlyMonitorStatRepository()
+	userMonitorRepo := repository.NewUserMonitoringStatRepository()
+
+	userMonthlyAuditRepo := repository.NewUserMonthlyAuditReportRepository()
+	userAuditRepo := repository.NewUserAuditReportRepository()
+
+	userMonthlyMonitor, err := userMonthlyMOnitorRepo.GetUserMonthlyMonitorStats(user.Accessor, user.OwnerID, year)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "error extracting billboard monthly report")
+	}
+
+	userMonitor, err := userMonitorRepo.GetUserMonitoringStats(user.Accessor, user.OwnerID)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "error extracting billboard monthly report")
+	}
+	userMonthlyAudit, err := userMonthlyAuditRepo.GetUserMonthlyAuditReport(user.Accessor, user.OwnerID, year)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "error extracting billboard monthly report")
+	}
+	userAudit, err := userAuditRepo.GetUserAuditReport(user.Accessor, user.OwnerID)
+	if err != nil {
+		return utils.WriteError(c, fiber.StatusInternalServerError, "error extracting billboard monthly report")
+	}
+
+	monitors := types.MonitorsReportResponse{
+		MonthlyReport: userMonthlyMonitor,
+		Monitor:       userMonitor,
+	}
+
+	audit := types.AuditReportResponse{
+		MonthlyReport: userMonthlyAudit,
+		Audit:         userAudit,
+	}
+
+	report := types.UserReportResponse{
+		Monitors: monitors,
+		Audit:    audit,
+		Year:     year,
+	}
+
+	return c.Status(fiber.StatusOK).JSON(report)
 
 }
