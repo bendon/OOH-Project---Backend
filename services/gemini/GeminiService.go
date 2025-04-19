@@ -152,7 +152,7 @@ func GetFileDataExtraction(c *fiber.Ctx) error {
         run_up: ">100", "90-100", (>100, 90-100, 80-90, 70-80, 60-70, 50-60, 40-60, 30-40, 20-30, <20).
         angle: "double decker", "Head On", "Left", "Right", or null
         owner: {name, phone: [integers], email: [strings], address, website}
-        type: true if %s is billboard_type, false otherwise
+        type: true if %s is similar to billboard_type, false otherwise
         percentage_accuracy: float
         additional_notes: Observations about the billboard"
     `, analyzeStatement, ObjectType)
