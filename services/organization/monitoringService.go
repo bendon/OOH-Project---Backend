@@ -191,7 +191,7 @@ func GetBillboardsNearUser(c *fiber.Ctx) error {
 	billboardRepo := repository.NewBillBoardRepository()
 
 	// Fetch billboards within the specified radius
-	billboards, err := billboardRepo.GetBillBoardBoundingBox(user.Accessing, request.Latitude-latDiff, request.Latitude+latDiff, request.Longitude-lngDiff, request.Longitude+lngDiff)
+	billboards, err := billboardRepo.GetBillBoardBoundingBox(user.Accessor, request.Latitude-latDiff, request.Latitude+latDiff, request.Longitude-lngDiff, request.Longitude+lngDiff)
 	if err != nil {
 		return utils.WriteError(c, fiber.StatusInternalServerError, "Failed to get billboards")
 	}
