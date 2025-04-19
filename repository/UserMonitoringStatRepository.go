@@ -3,6 +3,7 @@ package repository
 import (
 	"bbscout/config/database"
 	models "bbscout/models/views"
+	"errors"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -29,6 +30,9 @@ func (r *userMonitoringStatRepositoryImpl) GetUserMonitoringStats(organizationId
 	var userMonthlyMonitorStats models.UserMonitoringStat
 	err := r.db.Where("organization_id = ? AND user_id = ?", organizationId, userId).First(&userMonthlyMonitorStats).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 

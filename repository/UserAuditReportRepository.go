@@ -3,6 +3,7 @@ package repository
 import (
 	"bbscout/config/database"
 	models "bbscout/models/views"
+	"errors"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -29,6 +30,9 @@ func (r *userAuditReportRepositoryImpl) GetUserAuditReport(organizationId uuid.U
 	var userAuditReport models.UserAuditReport
 	err := r.db.Where("user_id = ? AND organization_id = ?", userId, organizationId).First(&userAuditReport).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
