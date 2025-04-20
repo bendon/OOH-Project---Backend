@@ -5,7 +5,14 @@ pipeline {
         BBSCOUT_PASS = credentials('bbscout_password')
     }
     stages {
+        stage('Install Dependencies') {
+            steps {
+                echo "Installing required dependencies..."
+                sh "apt-get update && apt-get install -y sshpass"
+            }
+        }
         stage('Deploy') {
+            
             steps {
                 echo "Deploying..."
 
