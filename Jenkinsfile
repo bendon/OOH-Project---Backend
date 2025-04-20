@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        BBSCOUT_KEY = credentials('bbscout_key')
+        BBSCOUT_SSH = credentials('bbscout_key')
         BBSCOUT_PASS = credentials('bbscout_password')
     }
     stages {
