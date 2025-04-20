@@ -19,7 +19,7 @@ pipeline {
                     sh """
                         sshpass -p "$BBSCOUT_PASS" ssh -o StrictHostKeyChecking=no -p $port $user@$host '
                             cd bbscout/backend &&
-                            git pull origin main &&
+                            git pull &&
                             echo "$BBSCOUT_PASS" | sudo -S docker compose up --build -d
                         '
                     """
